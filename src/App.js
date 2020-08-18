@@ -25,12 +25,11 @@ const GET_TABLES = gql`
 `
 
 const COL_UPDATE = gql`
-  mutation UpdateColumn($id: ID!, $title: String, $taskIds: [ID], $tasks: [Task]){
-    UpdateColumn(id: $id, title: $title, taskIds: $taskIds, tasks: $tasks){
+  mutation UpdateColumn($id: ID!, $title: String, $taskIds: [ID]){
+    UpdateColumn(id: $id, title: $title, taskIds: $taskIds){
         id,
         title,
         taskIds,
-        tasks,
     }
   }
 `
@@ -38,7 +37,7 @@ const COL_UPDATE = gql`
 function App() {
   const [state, setState] = useState(initialData);
   const { loading, error, data } = useQuery(GET_TABLES, {variables: 'Test Table'});
-  const [update, { updateLoading, updateError}] = useMutation(COL_UPDATE)
+  const [update, ] = useMutation(COL_UPDATE)
 
   const onDragEnd = (result) => {
     const {destination, source, draggableId} = result;
@@ -73,8 +72,10 @@ function App() {
     };
 
     setState(newState);
-    console.log(state)
-
+    update({variables: {
+      ...newColumn
+      }})
+      .catch(error => console.log(error))
   };
 
   const setTable = (data) => {
@@ -98,12 +99,9 @@ function App() {
       columns,
       columnOrder
     }
+
     setState(table)
   }
-
-  useEffect(() => {
-    console.log(state, ' From State Change')
-  }, [state])
 
   useEffect(() => {
 
