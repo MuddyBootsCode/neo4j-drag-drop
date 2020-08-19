@@ -6,7 +6,7 @@ import {DragDropContext} from "react-beautiful-dnd";
 import {gql, useMutation, useQuery} from "@apollo/client";
 import styled from "styled-components";
 
-const GET_TABLES = gql`
+const GET_TABLE = gql`
     query GetTables($title: String){
         Table(title: $title){
             id
@@ -59,7 +59,7 @@ const Container = styled.div`
 
 function App() {
   const [state, setState] = useState(initialData);
-  const {loading, error, data} = useQuery(GET_TABLES, {variables: 'Test Table'});
+  const {loading, error, data} = useQuery(GET_TABLE, {variables: 'Test Table'});
   const [colUpdate] = useMutation(COL_UPDATE)
   const [addTask] = useMutation(ADD_TASK);
   const [removeTask] = useMutation(REMOVE_TASK);
