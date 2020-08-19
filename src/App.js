@@ -133,6 +133,7 @@ function App() {
     }
 
     setState(newState)
+
     colUpdate({
       variables: {
         ...newStart
