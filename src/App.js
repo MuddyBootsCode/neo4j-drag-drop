@@ -64,8 +64,9 @@ function App() {
   const [addTask] = useMutation(ADD_TASK);
   const [removeTask] = useMutation(REMOVE_TASK);
 
-  const onDragEnd = (result) => {
+  const onDragEnd = async (result) => {
     const {destination, source, draggableId} = result;
+    const fallbackState = {...state};
 
     if (!destination) {
       return;
@@ -80,6 +81,7 @@ function App() {
 
     const start = state.columns[source.droppableId];
     const finish = state.columns[destination.droppableId]
+
     if (start === finish) {
       const newTaskIds = [...start.taskIds]
       newTaskIds.splice(source.index, 1);
@@ -99,13 +101,18 @@ function App() {
       };
 
       setState(newState);
-      colUpdate({
-        variables: {
-          ...newColumn
-        }
-      })
-        .catch(error => console.log(error))
-      return;
+
+      try{
+        await colUpdate({
+          variables: {
+            ...newColumn
+          }
+        })
+        return;
+      } catch(e){
+        setState(fallbackState)
+        console.warn(e)
+      }
     }
 
     const startTaskIds = [...start.taskIds];
@@ -134,43 +141,53 @@ function App() {
 
     setState(newState)
 
-    colUpdate({
-      variables: {
-        ...newStart
-      }
-    })
-      .then((data) => {
-        const {data: {UpdateColumn: {id}}} = data;
-        removeTask({
-          variables: {
-            from: {id: taskId},
-            to: {id}
-          }
-        })
-          .catch(error => console.log(error))
-      })
-      .catch(error => console.log(error))
+    try {
+      const data = await colUpdate({
+        variables: {
+          ...newStart,
+        },
+      });
+      const {
+        data: {
+          UpdateColumn: { id },
+        },
+      } = data;
+      await removeTask({
+        variables: {
+          from: { id: taskId },
+          to: { id },
+        },
+      });
+    } catch (e) {
+      setState(fallbackState)
+      console.error(e);
+    }
 
-    colUpdate({
-      variables: {
-        ...newFinish
-      }
-    })
-      .then((data) => {
-        const {data: {UpdateColumn: {id}}} = data;
-        addTask({
-          variables: {
-            from: {id: taskId},
-            to: {id}
-          }
-        })
-          .catch(error => console.log(error))
-      })
-      .catch(error => console.log(error))
-
+    try {
+      const data = await colUpdate({
+        variables: {
+          ...newFinish,
+        },
+      });
+      const {
+        data: {
+          UpdateColumn: { id },
+        },
+      } = data;
+      await addTask({
+        variables: {
+          from: { id: taskId },
+          to: { id },
+        },
+      });
+    } catch (e) {
+      setState(fallbackState)
+      console.error(e);
+    }
   };
 
   const setTable = (data) => {
+    console.log(data)
     const {Table} = data;
     const tasks = {};
     const columns = {};
@@ -211,7 +228,7 @@ function App() {
   }
 
   return (
-    <div className="App" style={{ display: 'flex', justifyContent: 'space-around'}}>
+    <div className="App" style={{display: 'flex', justifyContent: 'space-around'}}>
       <DragDropContext
         onDragEnd={onDragEnd}
       >
