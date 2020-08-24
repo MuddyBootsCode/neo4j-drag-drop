@@ -2,6 +2,15 @@ import React from 'react';
 import styled from "styled-components";
 import Task from "./Task";
 import {Droppable} from "react-beautiful-dnd";
+import {gql, useMutation} from "@apollo/client";
+
+const CREATE_TASK = gql`
+    mutation addTask($taskContent: String!, $columnId: ID!){
+        addTask(taskContent: $taskContent, columnId: $columnId){
+            id
+        }
+    }
+`
 
 const Container = styled.div`
   margin: 8px;
@@ -22,11 +31,30 @@ const TaskList = styled.div`
   min-height: 100px;
 `;
 
+const AddTaskButton = styled.button`
+  margin-left: 5px;
+  background-color: lightblue;
+`
+
 const Column = ({column, tasks}) => {
+  const [addTask] = useMutation(CREATE_TASK);
 
   return (
     <Container>
-      <Title>{column.title}</Title>
+      <div>
+        <div>
+          <Title>{column.title}</Title>
+        </div>
+        <div>
+          Add Task
+          <AddTaskButton
+            onClick={() => addTask({ variables: {
+              taskContent: `New task created in column ${column.title}`,
+              columnId: column.id
+              }})}
+          >+</AddTaskButton>
+        </div>
+      </div>
       <Droppable droppableId={column.id}>
         {(provided, snapshot) =>
           <TaskList
