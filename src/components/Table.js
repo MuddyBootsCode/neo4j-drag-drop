@@ -11,7 +11,8 @@ const useStyles = makeStyles((theme) => ({
     root: {
       display: 'flex',
       justifyContent: 'space-around',
-      height: '100vh'
+      height: '100vh',
+      backgroundColor: 'lightblue'
     },
     paper: {
       margin: '1em',
