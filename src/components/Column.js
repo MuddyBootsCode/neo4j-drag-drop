@@ -1,11 +1,14 @@
 import React from 'react';
 import Paper from "@material-ui/core/Paper";
 import {makeStyles} from "@material-ui/core/styles";
-import { Droppable } from "react-beautiful-dnd";
+import {Droppable} from "react-beautiful-dnd";
 import styled from "styled-components";
 import Task from './Task'
-import {Divider} from "@material-ui/core";
-import {gql} from "@apollo/client";
+import {Divider, Fab} from "@material-ui/core";
+import AddIcon from '@material-ui/icons/Add';
+import { useMutation } from "@apollo/client";
+import Tooltip from "@material-ui/core/Tooltip";
+import { CREATE_TASK } from "../queries/taskTableQueries";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -16,7 +19,9 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: 'lightgrey'
   },
   title: {
-    padding: '8px'
+    padding: '8px',
+    display: 'flex',
+    justifyContent: 'space-around'
   },
   taskList: {
     padding: '8px',
@@ -35,24 +40,32 @@ const TaskList = styled.div`
   min-height: 100px;
 `;
 
-const ADD_TASK = gql`
-    mutation AddTaskColumn($from: _TaskInput!, $to: _ColumnInput!){
-        AddTaskColumn(from: $from, to: $to){
-            to {
-                id
-            }
-        }
-    }
-`
-
 const Column = ({ column, tasks }) => {
-const classes = useStyles();
+  const [createTask] = useMutation(CREATE_TASK);
+
+  const handleClick = () => {
+    return createTask({
+      variables: {
+        columnId: column.id,
+        taskContent: `Task created for Column ${column.id}`
+      }
+    })
+  }
+
+  const classes = useStyles();
   return (
     <Paper className={classes.paper}>
       <div className={classes.title}>
         <h3>{column.title}</h3>
+
+          <Fab color="primary" size="small" onClick={handleClick}>
+            <Tooltip title="Add Task">
+              <AddIcon/>
+            </Tooltip >
+          </Fab>
+
       </div>
-      <Divider />
+      <Divider/>
       <Droppable droppableId={column.id}>
         {(provided, snapshot) =>
           <TaskList
@@ -60,7 +73,7 @@ const classes = useStyles();
             {...provided.droppableProps}
             isDraggingOver={snapshot.isDraggingOver}
           >
-            {tasks.map((task, index) => <Task key={task.id} task={task} index={index}/>)}
+            {tasks && tasks.map((task, index) => <Task key={task.id} task={task} index={index}/>)}
             {provided.placeholder}
           </TaskList>
         }
