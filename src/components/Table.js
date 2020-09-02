@@ -1,12 +1,12 @@
 import React, {useEffect, useState} from 'react';
 import {Container} from "@material-ui/core";
 import {makeStyles} from '@material-ui/core/styles';
-import initialData from "../initialData";
+import initialEmptyData from "../initialData";
 import Column from "../components/Column";
-import { DragDropContext } from "react-beautiful-dnd";
+import {DragDropContext} from "react-beautiful-dnd";
 import Paper from "@material-ui/core/Paper";
-import { useMutation, useQuery } from "@apollo/client";
-import {GET_TABLE, COL_UPDATE, ADD_TASK, REMOVE_TASK } from "../queries/taskTableQueries";
+import {useMutation, useQuery} from "@apollo/client";
+import {ADD_TASK, COL_UPDATE, GET_TABLE, REMOVE_TASK} from "../queries/taskTableQueries";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -20,10 +20,21 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
+export const columnUpdate = (column, sourceIndex, destinationIndex, draggableId) => {
+  const newTaskIds = [...column.taskIds]
+  newTaskIds.splice(sourceIndex, 1);
+  newTaskIds.splice(destinationIndex, 0, draggableId);
+
+  return {
+    ...column,
+    taskIds: newTaskIds
+  };
+};
+
 
 const Table = () => {
   const classes = useStyles();
-  const [state, setState] = useState(initialData);
+  const [state, setState] = useState(initialEmptyData);
   const {loading, error, data} = useQuery(GET_TABLE, {variables: {id: 't1'}});
   const [colUpdate] = useMutation(COL_UPDATE)
   const [addTask] = useMutation(ADD_TASK);
@@ -48,15 +59,8 @@ const Table = () => {
     const finish = state.columns.find(col => col.id === destination.droppableId);
 
     if (start === finish) {
-      const newTaskIds = [...start.taskIds]
-      newTaskIds.splice(source.index, 1);
-      newTaskIds.splice(destination.index, 0, draggableId);
 
-      const newColumn = {
-        ...start,
-        taskIds: newTaskIds
-      };
-
+      const newColumn = columnUpdate(start, source.index, destination.index, draggableId)
 
       const updatedColumns = state.columns.filter(col => col.id !== start.id)
 
@@ -73,7 +77,7 @@ const Table = () => {
         await colUpdate({
           variables: {
             id: newColumn.id,
-            taskIds: newTaskIds
+            taskIds: newColumn.taskIds
           }
         })
         return;
@@ -95,6 +99,8 @@ const Table = () => {
         taskIds: startTaskIds,
         tasks: startTasks
       };
+
+      console.log(newStart, ' Start column state')
 
 
       const finishTaskIds = [...finish.taskIds];
@@ -122,51 +128,51 @@ const Table = () => {
       console.log(newState, ' New State')
       setState(newState)
 
-      try {
-        const data = await colUpdate({
-          variables: {
-            ...newStart,
-          },
-        });
-        const {
-          data: {
-            UpdateColumn: { id },
-          },
-        } = data;
-        await removeTask({
-          variables: {
-            from: { id: taskId },
-            to: { id },
-          },
-        });
-      } catch (e) {
-        setState(fallbackState)
-        console.error(e);
-        console.log('Error at newStart update')
-      }
+      // try {
+      //   const data = await colUpdate({
+      //     variables: {
+      //       ...newStart,
+      //     },
+      //   });
+      //   const {
+      //     data: {
+      //       UpdateColumn: { id },
+      //     },
+      //   } = data;
+      //   await removeTask({
+      //     variables: {
+      //       from: { id: taskId },
+      //       to: { id },
+      //     },
+      //   });
+      // } catch (e) {
+      //   setState(fallbackState)
+      //   console.error(e);
+      //   console.log('Error at newStart update')
+      // }
 
-      try {
-        const data = await colUpdate({
-          variables: {
-            ...newFinish,
-          },
-        });
-        const {
-          data: {
-            UpdateColumn: { id },
-          },
-        } = data;
-        await addTask({
-          variables: {
-            from: { id: taskId },
-            to: { id },
-          },
-        });
-      } catch (e) {
-        setState(fallbackState)
-        console.error(e);
-        console.log('Error at newFinish update')
-      }
+      // try {
+      //   const data = await colUpdate({
+      //     variables: {
+      //       ...newFinish,
+      //     },
+      //   });
+      //   const {
+      //     data: {
+      //       UpdateColumn: { id },
+      //     },
+      //   } = data;
+      //   await addTask({
+      //     variables: {
+      //       from: { id: taskId },
+      //       to: { id },
+      //     },
+      //   });
+      // } catch (e) {
+      //   setState(fallbackState)
+      //   console.error(e);
+      //   console.log('Error at newFinish update')
+      // }
     }
   };
 
@@ -185,8 +191,6 @@ const Table = () => {
   if (error) {
     console.warn(error)
   }
-
-  console.log(state)
 
   return (
     <Container className={classes.root}>

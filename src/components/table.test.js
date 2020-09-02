@@ -1,15 +1,16 @@
-export const initialFullData = {
+import { columnUpdate } from "./Table";
+
+const defaultData = {
   tasks: {
     'task-1': {id: 'task-1', content: 'Take out the garbage'},
     'task-2': {id: 'task-2', content: 'Watch my favorite show'},
     'task-3': {id: 'task-3', content: 'Charge my phone'},
-    'task-4': {id: 'task-4', content: 'Cook dinner'},
   },
   columns: {
     'column-1': {
       id: 'column-1',
       title: 'To do',
-      taskIds: ['task-1', 'task-2', 'task-3', 'task-4'],
+      taskIds: ['task-1', 'task-2', 'task-3'],
     },
     'column-2': {
       id: 'column-2',
@@ -25,14 +26,15 @@ export const initialFullData = {
   columnOrder: ['column-1', 'column-2', 'column-3'],
 };
 
-const initialEmptyData = {
-  tasks: {
+const newColumn = {
+  id: 'column-1',
+  title: 'To do',
+  taskIds: ['task-2', 'task-1', 'task-3']
+};
 
-  },
-  columns: {
+it('should return an updated column', () => {
+  const colToUpdate = defaultData.columns['column-1']
+  const updated = columnUpdate(colToUpdate, 0, 1, 'task-1')
+  expect(updated).toEqual(newColumn)
+})
 
-  },
-  columnOrder: []
-}
-
-export default initialEmptyData;
