@@ -20,7 +20,7 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-export const columnUpdate = (column, sourceIndex, destinationIndex, draggableId) => {
+export const reorderTasks = (column, sourceIndex, destinationIndex, draggableId) => {
   const newTaskIds = [...column.taskIds]
   newTaskIds.splice(sourceIndex, 1);
   newTaskIds.splice(destinationIndex, 0, draggableId);
@@ -31,6 +31,23 @@ export const columnUpdate = (column, sourceIndex, destinationIndex, draggableId)
   };
 };
 
+export const columnUpdate = (columns, colId) => {
+  return columns.filter(col => col.id !== colId)
+}
+
+export const changeTaskColumn = (column, taskIndex, newTask = null) => {
+  if(!newTask){
+    const startTaskIds = [...column.taskIds];
+    const startTasks = [...column.tasks];
+    startTaskIds.splice(taskIndex, 1);
+    startTasks.splice(taskIndex, 1)
+    return {
+      ...column,
+      taskIds: startTaskIds,
+      tasks: startTasks
+    };
+  }
+}
 
 const Table = () => {
   const classes = useStyles();
@@ -60,11 +77,11 @@ const Table = () => {
 
     if (start === finish) {
 
-      const newColumn = columnUpdate(start, source.index, destination.index, draggableId)
+      const newColumn = reorderTasks(start, source.index, destination.index, draggableId)
 
-      const updatedColumns = state.columns.filter(col => col.id !== start.id)
+      const updatedColumns = columnUpdate(state.columns, start.id)
 
-      const newColumns = [...updatedColumns, newColumn]
+      const newColumns = [...updatedColumns, newColumn];
 
       const newState = {
         ...state,
@@ -74,7 +91,7 @@ const Table = () => {
       setState(newState);
 
       try{
-        await colUpdate({
+         await colUpdate({
           variables: {
             id: newColumn.id,
             taskIds: newColumn.taskIds
@@ -88,20 +105,12 @@ const Table = () => {
     }
 
     if(start !== finish){
-      const startTaskIds = [...start.taskIds];
-      const startTasks = [...start.tasks];
-      const moveTask = startTasks[0]
-      const taskId = startTaskIds[source.index];
-      startTaskIds.splice(source.index, 1);
-      startTasks.splice(source.index, 1)
-      const newStart = {
-        ...start,
-        taskIds: startTaskIds,
-        tasks: startTasks
-      };
+      const moveTask = start.tasks[source.index]
+      const taskId = start.taskIds[source.index];
 
-      console.log(newStart, ' Start column state')
+      const newStart = changeTaskColumn(start, source.index)
 
+      // const newFinish = changeTaskColumn(start, destination.index, )
 
       const finishTaskIds = [...finish.taskIds];
       const finishTasks = [...finish.tasks]
@@ -113,8 +122,11 @@ const Table = () => {
         tasks: finishTasks
       }
 
+      console.log(newFinish, ' newFinishColumn')
+
       const changeIds = [start.id, finish.id];
       const currentColumns = [...state.columns];
+      console.log(currentColumns, ' Current Columns before')
       changeIds.forEach((id) => {
         const removeIndex = currentColumns.map(col => col.id).indexOf(id)
         currentColumns.splice(removeIndex, 1)
