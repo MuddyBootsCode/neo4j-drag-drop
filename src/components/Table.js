@@ -6,7 +6,7 @@ import Column from "../components/Column";
 import {DragDropContext} from "react-beautiful-dnd";
 import Paper from "@material-ui/core/Paper";
 import {useMutation, useQuery} from "@apollo/client";
-import {SWAP_TASK, COL_UPDATE, GET_TABLE, TASK_UPDATE} from "../queries/taskTableQueries";
+import {SWAP_TASK, GET_TABLE, TASK_UPDATE} from "../queries/taskTableQueries";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -94,9 +94,7 @@ const Table = () => {
     }
 
     const start = state.columns[source.droppableId];
-    console.log(source.droppableId, source.index, ' Start')
     const finish = state.columns[destination.droppableId]
-    console.log(destination.droppableId, destination.index, ' Finish')
 
     if (start === finish) {
 
@@ -110,8 +108,6 @@ const Table = () => {
         }
       };
 
-      console.log(newState)
-
       setState(newState);
 
       try{
@@ -120,7 +116,7 @@ const Table = () => {
             taskUpdate({
               variables: {
                 ...task
-              }
+              },
             })
           })
         )
@@ -132,12 +128,12 @@ const Table = () => {
     }
 
     if(start !== finish){
-      const startTaskIds = [...start.taskIds];
-      const taskId = startTaskIds[source.index];
-      startTaskIds.splice(source.index, 1);
+      const startTasks = [...start.tasks];
+      const taskId = startTasks[source.index];
+      startTasks.splice(source.index, 1);
       const newStart = {
         ...start,
-        taskIds: startTaskIds
+        tasks: startTasks
       };
 
       const finishTaskIds = [...finish.taskIds];
