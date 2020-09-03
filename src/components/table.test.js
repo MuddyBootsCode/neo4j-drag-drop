@@ -1,4 +1,4 @@
-import {changeTaskColumn, columnUpdate, reorderTasks} from "./Table";
+import {addTaskColumn, changeTaskColumn, singleColumnUpdate, reorderTasks} from "./Table";
 
 const defaultData = {
   tasks: {
@@ -10,7 +10,11 @@ const defaultData = {
     'column-1': {
       id: 'column-1',
       title: 'To do',
-      taskIds: ['task-1', 'task-2', 'task-3'],
+      tasks: [
+        {id: 'task-1', content: 'Take out the garbage', placeMarker: 'c1-t0'},
+        {id: 'task-2', content: 'Watch my favorite show', placeMarker: 'c1-t1'},
+        {id: 'task-3', content: 'Charge my phone', placeMarker: 'c1-t2'}
+      ]
     },
     'column-2': {
       id: 'column-2',
@@ -47,7 +51,11 @@ const defaultCols = [
 const newColumn = {
   id: 'column-1',
   title: 'To do',
-  taskIds: ['task-2', 'task-1', 'task-3']
+  tasks: [
+    {id: 'task-2', content: 'Watch my favorite show', placeMarker: 'col-column-1-t0'},
+    {id: 'task-1', content: 'Take out the garbage', placeMarker: 'col-column-1-t1'},
+    {id: 'task-3', content: 'Charge my phone', placeMarker: 'col-column-1-t2'}
+    ]
 };
 
 const newColumnOrder = [
@@ -108,21 +116,48 @@ const taskRemovedColumn = {
   ]
 }
 
+const taskAddedColumn = {
+  __typename: "Column",
+  id: "c2",
+  taskIds: [
+    "tk1"
+  ],
+  tasks: [
+    {
+      __typename: "Task",
+      id: 'tk1',
+      content: "Task 1"
+    },
+  ],
+  title: "New Test Column 2"
+}
+
+const noTaskColumn = {
+  __typename: "Column",
+  id: "c2",
+  taskIds: [],
+  tasks: [],
+  title: "New Test Column 2"
+}
+
 it('should reorder the tasks and return an updated column', () => {
   const colToUpdate = defaultData.columns['column-1']
   const updated = reorderTasks(colToUpdate, 0, 1, 'task-1')
   expect(updated).toEqual(newColumn)
 })
 
-it('Should filter out the column being changed', () => {
-  const colsToUpdate = defaultCols;
-  const updated = columnUpdate(colsToUpdate, 'column-1')
-  expect(updated).toEqual(newColumnOrder)
-})
-
 it('Should correctly filter out moved tasks and return an updated column', () => {
   const updated = changeTaskColumn(allTaskColumn, 0)
   expect(updated).toEqual(taskRemovedColumn)
+})
+
+it('Should Add task and taskID to column', () => {
+  const updated = addTaskColumn(noTaskColumn, 0, {
+    __typename: "Task",
+    id: 'tk1',
+    content: "Task 1"
+  }, 'tk1')
+  expect(updated).toEqual(taskAddedColumn)
 })
 
 

@@ -6,7 +6,7 @@ import Column from "../components/Column";
 import {DragDropContext} from "react-beautiful-dnd";
 import Paper from "@material-ui/core/Paper";
 import {useMutation, useQuery} from "@apollo/client";
-import {ADD_TASK, COL_UPDATE, GET_TABLE, REMOVE_TASK} from "../queries/taskTableQueries";
+import {SWAP_TASK, COL_UPDATE, GET_TABLE, TASK_UPDATE} from "../queries/taskTableQueries";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -21,22 +21,24 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export const reorderTasks = (column, sourceIndex, destinationIndex, draggableId) => {
-  const newTaskIds = [...column.taskIds]
-  newTaskIds.splice(sourceIndex, 1);
-  newTaskIds.splice(destinationIndex, 0, draggableId);
+  const tasks = [...column.tasks]
+  let moveTask = tasks.find(task => task.id === draggableId)
+  tasks.splice(sourceIndex, 1);
+  tasks.splice(destinationIndex, 0, moveTask);
+
+  const newTasks = tasks.map((task, index) => {
+    const cp = {...task}
+    cp.placeMarker = `col-${column.id}-t${index}`
+    return cp
+  })
 
   return {
     ...column,
-    taskIds: newTaskIds
+    tasks: [...newTasks]
   };
 };
 
-export const columnUpdate = (columns, colId) => {
-  return columns.filter(col => col.id !== colId)
-}
-
-export const changeTaskColumn = (column, taskIndex, newTask = null) => {
-  if(!newTask){
+export const changeTaskColumn = (column, taskIndex) => {
     const startTaskIds = [...column.taskIds];
     const startTasks = [...column.tasks];
     startTaskIds.splice(taskIndex, 1);
@@ -46,16 +48,35 @@ export const changeTaskColumn = (column, taskIndex, newTask = null) => {
       taskIds: startTaskIds,
       tasks: startTasks
     };
+}
+
+export const addTaskColumn = (column, taskIndex, newTask, draggableId) => {
+  const finishTaskIds = [...column.taskIds];
+  const finishTasks = [...column.tasks]
+  finishTaskIds.splice(taskIndex, 0, draggableId);
+  finishTasks.splice(taskIndex, 0, newTask);
+  return {
+    ...column,
+    taskIds: finishTaskIds,
+    tasks: finishTasks
   }
+}
+
+export const allColumnUpdate = (columns, changeIds) => {
+  const newCols = [...columns];
+  changeIds.forEach((id) => {
+    const removeIndex = newCols.map(col => col.id).indexOf(id)
+    newCols.splice(removeIndex, 1)
+  })
+  return newCols;
 }
 
 const Table = () => {
   const classes = useStyles();
   const [state, setState] = useState(initialEmptyData);
   const {loading, error, data} = useQuery(GET_TABLE, {variables: {id: 't1'}});
-  const [colUpdate] = useMutation(COL_UPDATE)
-  const [addTask] = useMutation(ADD_TASK);
-  const [removeTask] = useMutation(REMOVE_TASK);
+  const [taskUpdate] = useMutation(TASK_UPDATE)
+  const [swapTask] = useMutation(SWAP_TASK)
 
   const onDragEnd = async (result) => {
     const {destination, source, draggableId} = result;
@@ -72,127 +93,110 @@ const Table = () => {
       return;
     }
 
-    const start = state.columns.find(col => col.id === source.droppableId);
-    const finish = state.columns.find(col => col.id === destination.droppableId);
+    const start = state.columns[source.droppableId];
+    console.log(source.droppableId, source.index, ' Start')
+    const finish = state.columns[destination.droppableId]
+    console.log(destination.droppableId, destination.index, ' Finish')
 
     if (start === finish) {
 
       const newColumn = reorderTasks(start, source.index, destination.index, draggableId)
 
-      const updatedColumns = columnUpdate(state.columns, start.id)
-
-      const newColumns = [...updatedColumns, newColumn];
-
       const newState = {
         ...state,
-        columns: newColumns
+        columns: {
+          ...state.columns,
+          [newColumn.id]: newColumn
+        }
       };
+
+      console.log(newState)
 
       setState(newState);
 
       try{
-         await colUpdate({
-          variables: {
-            id: newColumn.id,
-            taskIds: newColumn.taskIds
-          }
-        })
+        await Promise.all(
+          newColumn.tasks.map((task) => {
+            taskUpdate({
+              variables: {
+                ...task
+              }
+            })
+          })
+        )
         return;
       } catch(e){
         setState(fallbackState)
-        console.log(e)
+        console.warn(e)
       }
     }
 
     if(start !== finish){
-      const moveTask = start.tasks[source.index]
-      const taskId = start.taskIds[source.index];
-
-      const newStart = changeTaskColumn(start, source.index)
-
-      // const newFinish = changeTaskColumn(start, destination.index, )
+      const startTaskIds = [...start.taskIds];
+      const taskId = startTaskIds[source.index];
+      startTaskIds.splice(source.index, 1);
+      const newStart = {
+        ...start,
+        taskIds: startTaskIds
+      };
 
       const finishTaskIds = [...finish.taskIds];
-      const finishTasks = [...finish.tasks]
       finishTaskIds.splice(destination.index, 0, draggableId);
-      finishTasks.splice(destination.index, 0, moveTask);
+
       const newFinish = {
         ...finish,
-        taskIds: finishTaskIds,
-        tasks: finishTasks
+        taskIds: finishTaskIds
       }
-
-      console.log(newFinish, ' newFinishColumn')
-
-      const changeIds = [start.id, finish.id];
-      const currentColumns = [...state.columns];
-      console.log(currentColumns, ' Current Columns before')
-      changeIds.forEach((id) => {
-        const removeIndex = currentColumns.map(col => col.id).indexOf(id)
-        currentColumns.splice(removeIndex, 1)
-      })
-      const updatedColumns = [...currentColumns, newStart, newFinish]
 
       const newState = {
         ...state,
-        columns: updatedColumns
+        columns: {
+          ...state.columns,
+          [newStart.id]: newStart,
+          [newFinish.id]: newFinish
+        }
       }
-      console.log(newState, ' New State')
+
       setState(newState)
 
       // try {
-      //   const data = await colUpdate({
-      //     variables: {
-      //       ...newStart,
-      //     },
-      //   });
-      //   const {
-      //     data: {
-      //       UpdateColumn: { id },
-      //     },
-      //   } = data;
-      //   await removeTask({
-      //     variables: {
-      //       from: { id: taskId },
-      //       to: { id },
-      //     },
-      //   });
-      // } catch (e) {
+      //     await swapTask({
+      //       variables: {
+      //         toColumnId: newFinish.id,
+      //         fromColumnId: newStart.id,
+      //         taskId
+      //       }
+      //     })
+      // } catch (error) {
       //   setState(fallbackState)
-      //   console.error(e);
-      //   console.log('Error at newStart update')
-      // }
-
-      // try {
-      //   const data = await colUpdate({
-      //     variables: {
-      //       ...newFinish,
-      //     },
-      //   });
-      //   const {
-      //     data: {
-      //       UpdateColumn: { id },
-      //     },
-      //   } = data;
-      //   await addTask({
-      //     variables: {
-      //       from: { id: taskId },
-      //       to: { id },
-      //     },
-      //   });
-      // } catch (e) {
-      //   setState(fallbackState)
-      //   console.error(e);
-      //   console.log('Error at newFinish update')
+      //   console.log(error)
       // }
     }
   };
 
+  const setTable = (data) => {
+    const { Table } = data
+    const tableData = Table[0];
+    const columns = {};
+    const columnOrder = tableData.columns.map(column => column.id);
+
+    // Pull out all columns and their associated task ids
+    tableData.columns.forEach((col) => {
+      columns[col.id] = {id: col.id, title: col.title, tasks: col.tasks}
+    })
+
+    const table = {
+      columns,
+      columnOrder
+    }
+
+    setState(table)
+  }
+
   useEffect(() => {
 
     if (data) {
-      const { Table } = data;
-      setState(Table[0])
+      setTable(data)
     }
   }, [data])
 
@@ -212,11 +216,9 @@ const Table = () => {
         <Paper className={classes.paper}>
           {
             state && state.columnOrder.map((columnId) => {
-              const column = state.columns.find(column => column.id === columnId);
-              const tasks = column.taskIds.map(id => {
-                return column.tasks.find(task => task.id === id)
-              })
-              return <Column key={column.id} column={column} tasks={tasks} />
+              const column = state.columns[columnId];
+              const tasks = column.tasks
+              return <Column key={column.id} column={column} tasks={tasks}/>
             })
           }
         </Paper>

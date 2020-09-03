@@ -12,7 +12,7 @@ const Container = styled.div`
 
 
 const Task = ({task, index}) => {
-  const {content, id} = task
+  const { content, id } = task
 
   return (
     <Draggable draggableId={id} index={index}>
