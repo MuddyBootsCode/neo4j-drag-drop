@@ -1,19 +1,44 @@
 import { gql } from '@apollo/client';
 
+// export const GET_TABLE = gql`
+//     query GetTable($id: ID){
+//         Table(id: $id){
+//             id
+//             title
+//             columnOrder
+//             columns(orderBy: id_asc){
+//                 id
+//                 title
+//                 tasks(orderBy: placeMarker_asc){
+//                     id
+//                     content
+//                     placeMarker
+//                 }
+//             }
+//         }
+//     }
+// `
+
 export const GET_TABLE = gql`
     query GetTable($id: ID){
         Table(id: $id){
             id
             title
-            columnOrder
             columns(orderBy: id_asc){
                 id
-                title
-                tasks(orderBy: placeMarker_asc){
-                    id
-                    content
-                    placeMarker
-                }
+            }
+        }
+    }
+`
+
+export const GET_COLUMN = gql`
+    query GetColumn($id: ID){
+        Column(id: $id){
+            id
+            tasks(orderBy: id_asc){
+                id
+                content
+                placeMarker
             }
         }
     }

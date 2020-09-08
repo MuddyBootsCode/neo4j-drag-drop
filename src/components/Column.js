@@ -40,44 +40,45 @@ const TaskList = styled.div`
   min-height: 100px;
 `;
 
-const Column = ({ column, tasks }) => {
+const Column = ({columnId}) => {
+  console.log(columnId)
   const [createTask] = useMutation(CREATE_TASK);
 
-  const handleClick = () => {
-    return createTask({
-      variables: {
-        columnId: column.id,
-        taskContent: `Task created for Column ${column.id}`
-      }
-    })
-  }
+  // const handleClick = () => {
+  //   return createTask({
+  //     variables: {
+  //       columnId: column.id,
+  //       taskContent: `Task created for Column ${column.id}`
+  //     }
+  //   })
+  // }
 
   const classes = useStyles();
   return (
     <Paper className={classes.paper}>
       <div className={classes.title}>
-        <h3>{column.title}</h3>
+        <h3>{columnId}</h3>
 
-          <Fab color="primary" size="small" onClick={handleClick}>
-            <Tooltip title="Add Task">
-              <AddIcon/>
-            </Tooltip >
-          </Fab>
+          {/*<Fab color="primary" size="small" onClick={handleClick}>*/}
+          {/*  <Tooltip title="Add Task">*/}
+          {/*    <AddIcon/>*/}
+          {/*  </Tooltip >*/}
+          {/*</Fab>*/}
 
       </div>
       <Divider/>
-      <Droppable droppableId={column.id}>
-        {(provided, snapshot) =>
-          <TaskList
-            ref={provided.innerRef}
-            {...provided.droppableProps}
-            isDraggingOver={snapshot.isDraggingOver}
-          >
-            {tasks && tasks.map((task, index) => <Task key={task.id} task={task} index={index}/>)}
-            {provided.placeholder}
-          </TaskList>
-        }
-      </Droppable>
+      {/*<Droppable droppableId={column.id}>*/}
+      {/*  {(provided, snapshot) =>*/}
+      {/*    <TaskList*/}
+      {/*      ref={provided.innerRef}*/}
+      {/*      {...provided.droppableProps}*/}
+      {/*      isDraggingOver={snapshot.isDraggingOver}*/}
+      {/*    >*/}
+      {/*      {tasks && tasks.map((task, index) => <Task key={task.id} task={task} index={index}/>)}*/}
+      {/*      {provided.placeholder}*/}
+      {/*    </TaskList>*/}
+      {/*  }*/}
+      {/*</Droppable>*/}
     </Paper>
   );
 };

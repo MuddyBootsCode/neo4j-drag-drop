@@ -3,7 +3,9 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import '@atlaskit/css-reset';
 import App from './App';
-import {ApolloClient, ApolloProvider, InMemoryCache, makeVar} from "@apollo/client";
+import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
+import {RecoilRoot} from "recoil";
+import {ChromogenObserver} from "chromogen";
 
 
 const client = new ApolloClient({
@@ -14,7 +16,10 @@ const client = new ApolloClient({
 ReactDOM.render(
   <React.StrictMode>
     <ApolloProvider client={client}>
-      <App />
+      <RecoilRoot>
+        <ChromogenObserver />
+        <App />
+      </RecoilRoot>
     </ApolloProvider>
   </React.StrictMode>,
   document.getElementById('root')
