@@ -8,7 +8,13 @@ import {ApolloClient, ApolloProvider, InMemoryCache, makeVar} from "@apollo/clie
 
 const client = new ApolloClient({
   uri: process.env.REACT_APP_GRAPHQL_URI || 'http://localhost:4000',
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    typePolicies: {
+      Tasks: {
+        keyFields: false
+      }
+    }
+  }),
 })
 
 ReactDOM.render(

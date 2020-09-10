@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client';
+import {gql} from '@apollo/client';
 
 export const GET_TABLE = gql`
     query GetTable($id: ID){
@@ -9,12 +9,29 @@ export const GET_TABLE = gql`
             columns(orderBy: id_asc){
                 id
                 title
-                tasks(orderBy: placeMarker_asc){
+                tasks(orderBy: id_asc){
                     id
                     content
-                    placeMarker
                 }
             }
+        }
+    }
+`
+
+export const columnTasksFragment = gql`
+    fragment columnTasksFragment on Column {
+        tasks {
+            id
+            content
+        }
+    }
+`
+
+export const GET_TASK = gql`
+    query GetTask($id: ID){
+        Task(id: $id){
+            id,
+            content
         }
     }
 `
@@ -27,7 +44,6 @@ export const CREATE_TASK = gql`
             tasks{
                 id
                 content
-                placeMarker
             }
         }
     }
@@ -40,24 +56,36 @@ export const COL_UPDATE = gql`
             title
             tasks{
                 id
+                content
             }
         }
     }
 `
 
 export const TASK_UPDATE = gql`
-    mutation UpdateTask($id: ID!, $content: String, $placeMarker: String){
-        UpdateTask(id: $id, content: $content, placeMarker: $placeMarker){
+    mutation UpdateTask($id: ID!, $content: String){
+        UpdateTask(id: $id, content: $content){
             id
         }
     }
 `
 
-export const SWAP_TASK = gql`
-    mutation swapTask($fromColumnId: ID!, $toColumnId: ID!, $taskId: ID!){
-        swapTask(fromColumnId: $fromColumnId, toColumnId: $toColumnId, taskId: $taskId){
+export const TASK_ORDER = gql`
+    mutation updateTaskOrder($oldId: ID!, $newId: ID!){
+        updateTaskOrder(oldId: $oldId, newId: $newId){
             id
             content
+        }
+    }
+`
+
+export const SWAP_TASK = gql`
+    mutation swapTask($fromColumnId: ID!, $toColumnId: ID!, $taskId: ID!, $updatedId: ID!){
+        swapTask(fromColumnId: $fromColumnId, toColumnId: $toColumnId, taskId: $taskId, updatedId: $updatedId){
+            id
+            tasks{
+                id
+            }
         }
     }
 `
