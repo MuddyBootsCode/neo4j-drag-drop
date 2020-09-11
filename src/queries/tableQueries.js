@@ -13,7 +13,22 @@ const GET_TABLE = gql`
                     id
                     content
                 }
+                table {
+                    id
+                }
             }
+        }
+    }
+`
+
+const GET_COLUMN = gql`
+    query GetColumn($id: ID){
+        GetColumn(id: $id){
+            id
+            tasks{
+                id
+            }
+            taskIds
         }
     }
 `
@@ -46,9 +61,19 @@ const REMOVE_TASK_RELATIONSHIP = gql`
     }
 `
 
+const ADD_TASK = gql`
+    mutation addTask($taskContent: String!, $columnId: ID!){
+        addTask(taskContent: $taskContent, columnId: $columnId){
+            id
+        }
+    }
+`
+
 export {
   GET_TABLE,
   REMOVE_TASK_RELATIONSHIP,
   ADD_TASK_RELATIONSHIP,
-  COL_UPDATE
+  COL_UPDATE,
+  ADD_TASK,
+  GET_COLUMN
 }

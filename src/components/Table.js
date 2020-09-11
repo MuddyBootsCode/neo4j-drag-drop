@@ -6,7 +6,13 @@ import Column from "../components/Column";
 import { DragDropContext } from "react-beautiful-dnd";
 import Paper from "@material-ui/core/Paper";
 import {useMutation, useQuery} from "@apollo/client";
-import {GET_TABLE, COL_UPDATE, REMOVE_TASK_RELATIONSHIP, ADD_TASK_RELATIONSHIP} from "../queries/tableQueries";
+import {
+  GET_TABLE,
+  COL_UPDATE,
+  REMOVE_TASK_RELATIONSHIP,
+  ADD_TASK_RELATIONSHIP,
+  ADD_TASK
+} from "../queries/tableQueries";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -30,6 +36,7 @@ const Table = () => {
   const [colUpdate] = useMutation(COL_UPDATE)
   const [addTask] = useMutation(ADD_TASK_RELATIONSHIP);
   const [removeTask] = useMutation(REMOVE_TASK_RELATIONSHIP);
+  const [createTask] = useMutation(ADD_TASK)
 
   const onDragEnd = async (result) => {
     const {destination, source, draggableId} = result;
@@ -157,7 +164,6 @@ const Table = () => {
   };
 
   const setTable = (data) => {
-    console.log(data)
     const {Table} = data;
     const tasks = {};
     const columns = {};
@@ -170,7 +176,7 @@ const Table = () => {
     });
     // Pull out all columns and their associated task ids
     Table[0].columns.forEach((col) => {
-      columns[col.id] = {id: col.id, title: col.title, taskIds: col.taskIds}
+      columns[col.id] = {id: col.id, title: col.title, taskIds: col.taskIds, tableId: col.table.id}
     })
 
     const table = {
@@ -209,7 +215,7 @@ const Table = () => {
             state.columnOrder.map((columnId) => {
               const column = state.columns[columnId];
               const tasks = column.taskIds.map(taskId => state.tasks[taskId])
-              return <Column key={column.id} column={column} tasks={tasks}/>
+              return <Column key={column.id} column={column} tasks={tasks} createTask={createTask}/>
             })
           }
         </Paper>

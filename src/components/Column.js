@@ -9,6 +9,7 @@ import {gql, useMutation} from "@apollo/client";
 import Tooltip from "@material-ui/core/Tooltip";
 import Fab from "@material-ui/core/Fab";
 import AddIcon from '@material-ui/icons/Add';
+import {GET_COLUMN} from "../queries/tableQueries";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -40,18 +41,19 @@ const TaskList = styled.div`
   min-height: 100px;
 `;
 
-const ADD_TASK = gql`
-    mutation addTask($taskContent: String!, $columnId: ID!){
-        addTask(taskContent: $taskContent, columnId: $columnId){
+
+const columnTasksFragment = gql`
+    fragment columnTasksFragment on Column {
+        tasks{
             id
+            content
         }
+        taskIds
     }
 `
 
-const Column = ({ column, tasks }) => {
+const Column = ({ column, tasks, createTask }) => {
   const classes = useStyles();
-  const [createTask] = useMutation(ADD_TASK)
-
 
   const handleClick = () => {
     return createTask({
