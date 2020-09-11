@@ -5,7 +5,8 @@ import initialData from "../initialData";
 import Column from "../components/Column";
 import { DragDropContext } from "react-beautiful-dnd";
 import Paper from "@material-ui/core/Paper";
-import {gql, useMutation, useQuery} from "@apollo/client";
+import {useMutation, useQuery} from "@apollo/client";
+import {GET_TABLE, COL_UPDATE, REMOVE_TASK_RELATIONSHIP, ADD_TASK_RELATIONSHIP} from "../queries/tableQueries";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -20,59 +21,15 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-const GET_TABLE = gql`
-    query GetTables($title: String){
-        Table(title: $title){
-            id
-            title
-            columns{
-                id
-                title
-                taskIds
-                tasks{
-                    id
-                    content
-                }
-            }
-        }
-    }
-`
 
-const COL_UPDATE = gql`
-    mutation UpdateColumn($id: ID!, $title: String, $taskIds: [ID]){
-        UpdateColumn(id: $id, title: $title, taskIds: $taskIds){
-            id
-        }
-    }
-`
-
-const ADD_TASK = gql`
-    mutation AddTaskColumn($from: _TaskInput!, $to: _ColumnInput!){
-        AddTaskColumn(from: $from, to: $to){
-            to {
-                id
-            }
-        }
-    }
-`
-
-const REMOVE_TASK = gql`
-    mutation RemoveTaskColumn($from: _TaskInput!, $to: _ColumnInput!){
-        RemoveTaskColumn(from: $from, to: $to){
-            to {
-                id
-            }
-        }
-    }
-`
 
 const Table = () => {
   const classes = useStyles();
   const [state, setState] = useState(initialData);
   const {loading, error, data} = useQuery(GET_TABLE, {variables: 'Test Table'});
   const [colUpdate] = useMutation(COL_UPDATE)
-  const [addTask] = useMutation(ADD_TASK);
-  const [removeTask] = useMutation(REMOVE_TASK);
+  const [addTask] = useMutation(ADD_TASK_RELATIONSHIP);
+  const [removeTask] = useMutation(REMOVE_TASK_RELATIONSHIP);
 
   const onDragEnd = async (result) => {
     const {destination, source, draggableId} = result;
@@ -94,7 +51,6 @@ const Table = () => {
 
     if (start === finish) {
       const newTaskIds = [...start.taskIds]
-      console.log(newTaskIds, ' on creation')
       newTaskIds.splice(source.index, 1);
       newTaskIds.splice(destination.index, 0, draggableId);
 

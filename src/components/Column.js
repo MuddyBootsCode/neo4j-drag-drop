@@ -5,7 +5,10 @@ import { Droppable } from "react-beautiful-dnd";
 import styled from "styled-components";
 import Task from './Task'
 import {Divider} from "@material-ui/core";
-import {gql} from "@apollo/client";
+import {gql, useMutation} from "@apollo/client";
+import Tooltip from "@material-ui/core/Tooltip";
+import Fab from "@material-ui/core/Fab";
+import AddIcon from '@material-ui/icons/Add';
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -16,7 +19,9 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: 'lightgrey'
   },
   title: {
-    padding: '8px'
+    padding: '8px',
+    display: 'flex',
+    justifyContent: 'space-between'
   },
   taskList: {
     padding: '8px',
@@ -36,21 +41,36 @@ const TaskList = styled.div`
 `;
 
 const ADD_TASK = gql`
-    mutation AddTaskColumn($from: _TaskInput!, $to: _ColumnInput!){
-        AddTaskColumn(from: $from, to: $to){
-            to {
-                id
-            }
+    mutation addTask($taskContent: String!, $columnId: ID!){
+        addTask(taskContent: $taskContent, columnId: $columnId){
+            id
         }
     }
 `
 
 const Column = ({ column, tasks }) => {
-const classes = useStyles();
+  const classes = useStyles();
+  const [createTask] = useMutation(ADD_TASK)
+
+
+  const handleClick = () => {
+    return createTask({
+      variables: {
+        columnId: column.id,
+        taskContent: `Task created for Column ${column.id}`
+      }
+    })
+  }
+
   return (
     <Paper className={classes.paper}>
       <div className={classes.title}>
         <h3>{column.title}</h3>
+        <Fab color="primary" size="small" onClick={handleClick}>
+          <Tooltip title="Add Task">
+            <AddIcon/>
+          </Tooltip >
+        </Fab>
       </div>
       <Divider />
       <Droppable droppableId={column.id}>
