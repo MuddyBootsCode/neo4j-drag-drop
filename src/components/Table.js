@@ -5,7 +5,8 @@ import initialData from "../initialData";
 import Column from "../components/Column";
 import { DragDropContext } from "react-beautiful-dnd";
 import Paper from "@material-ui/core/Paper";
-import {gql, useMutation, useQuery} from "@apollo/client";
+import {useMutation, useQuery} from "@apollo/client";
+import {GET_TABLE, COL_UPDATE, ADD_TASK, REMOVE_TASK, CREATE_TASK} from "../queries/tableQueries";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -20,59 +21,38 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-const GET_TABLE = gql`
-    query GetTables($title: String){
-        Table(title: $title){
-            id
-            title
-            columns{
-                id
-                title
-                taskIds
-                tasks{
-                    id
-                    content
-                }
-            }
-        }
-    }
-`
 
-const COL_UPDATE = gql`
-    mutation UpdateColumn($id: ID!, $title: String, $taskIds: [ID]){
-        UpdateColumn(id: $id, title: $title, taskIds: $taskIds){
-            id
-        }
-    }
-`
-
-const ADD_TASK = gql`
-    mutation AddTaskColumn($from: _TaskInput!, $to: _ColumnInput!){
-        AddTaskColumn(from: $from, to: $to){
-            to {
-                id
-            }
-        }
-    }
-`
-
-const REMOVE_TASK = gql`
-    mutation RemoveTaskColumn($from: _TaskInput!, $to: _ColumnInput!){
-        RemoveTaskColumn(from: $from, to: $to){
-            to {
-                id
-            }
-        }
-    }
-`
 
 const Table = () => {
   const classes = useStyles();
   const [state, setState] = useState(initialData);
   const {loading, error, data} = useQuery(GET_TABLE, {variables: 'Test Table'});
   const [colUpdate] = useMutation(COL_UPDATE)
-  const [addTask] = useMutation(ADD_TASK);
   const [removeTask] = useMutation(REMOVE_TASK);
+  const [addTask] = useMutation(ADD_TASK);
+  const [createTask] = useMutation(CREATE_TASK)
+
+  const addColumnTask = async (columnId) => {
+    const {data: { addTask } } = await createTask({
+      variables: {
+        columnId: columnId,
+        taskContent: `Task created for Column ${columnId}`
+      }
+    })
+
+    const colToUpdate = state.columns[columnId];
+    const updatedTaskIds = [...colToUpdate.taskIds, addTask.id]
+    const newColumn = {
+      ...colToUpdate,
+      taskIds: updatedTaskIds
+    }
+
+    setState({
+      ...state,
+      tasks: {...state.tasks, [addTask.id]: addTask },
+      columns: {...state.columns, [addTask.column.id]: newColumn}
+    })
+  }
 
   const onDragEnd = async (result) => {
     const {destination, source, draggableId} = result;
@@ -94,7 +74,6 @@ const Table = () => {
 
     if (start === finish) {
       const newTaskIds = [...start.taskIds]
-      console.log(newTaskIds, ' on creation')
       newTaskIds.splice(source.index, 1);
       newTaskIds.splice(destination.index, 0, draggableId);
 
@@ -132,11 +111,12 @@ const Table = () => {
       startTaskIds.splice(source.index, 1);
       const newStart = {
         ...start,
-        taskIds: startTaskIds
+        taskIds: [...start.taskIds.filter(id => id !== draggableId)]
       };
 
       const finishTaskIds = [...finish.taskIds];
       finishTaskIds.splice(destination.index, 0, draggableId);
+
       const newFinish = {
         ...finish,
         taskIds: finishTaskIds
@@ -201,7 +181,6 @@ const Table = () => {
   };
 
   const setTable = (data) => {
-    console.log(data)
     const {Table} = data;
     const tasks = {};
     const columns = {};
@@ -222,6 +201,8 @@ const Table = () => {
       columns,
       columnOrder
     }
+
+    console.log(table, ' Table')
 
     setState(table)
   }
@@ -253,7 +234,7 @@ const Table = () => {
             state.columnOrder.map((columnId) => {
               const column = state.columns[columnId];
               const tasks = column.taskIds.map(taskId => state.tasks[taskId])
-              return <Column key={column.id} column={column} tasks={tasks}/>
+              return <Column key={column.id} column={column} tasks={tasks} addTask={addColumnTask}/>
             })
           }
         </Paper>
