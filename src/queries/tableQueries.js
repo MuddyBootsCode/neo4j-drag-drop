@@ -25,6 +25,7 @@ const COL_UPDATE = gql`
   mutation UpdateColumn($id: ID!, $title: String, $taskIds: [ID]) {
     UpdateColumn(id: $id, title: $title, taskIds: $taskIds) {
       id
+      taskIds
     }
   }
 `;

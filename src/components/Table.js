@@ -61,27 +61,27 @@ const Table = () => {
 
   const deleteColumnTask = async (taskId, columnId) => {
     try {
-      const {
-        data: { DeleteTask },
-      } = await deleteTask({
+      await deleteTask({
         variables: {
           id: taskId,
         },
+        update: (cache) => cache.evict({ id: `Task:${taskId}` }),
       });
 
-      console.log(DeleteTask, ' Delete Task');
-
+      console.log(columnId, taskId);
       const colToUpdate = {
         ...state.columns[columnId],
         taskIds: [...state.columns[columnId].taskIds.filter((id) => id !== taskId)],
       };
 
-      console.log(colToUpdate, ' Col');
+      await colUpdate({
+        variables: {
+          ...colToUpdate,
+        },
+      });
 
       let newTasks = { ...state.tasks };
-      delete newTasks[DeleteTask.id];
-
-      console.log(newTasks, ' new Tasks');
+      delete newTasks[taskId];
 
       setState({
         ...state,
@@ -135,7 +135,6 @@ const Table = () => {
             ...newColumn,
           },
         });
-        return;
       } catch (e) {
         setState(fallbackState);
         console.warn(e);
