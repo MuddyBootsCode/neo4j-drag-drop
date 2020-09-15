@@ -50,7 +50,7 @@ const Column = ({ column, tasks, addTask, deleteTask }) => {
         {(provided, snapshot) => (
           <TaskList ref={provided.innerRef} {...provided.droppableProps} isDraggingOver={snapshot.isDraggingOver}>
             {tasks.map((task, index) => (
-              <Task key={task.id} task={task} index={index} deleteTask={deleteTask} />
+              <Task key={task.id} task={task} index={index} deleteTask={deleteTask} columnId={column.id} />
             ))}
             {provided.placeholder}
           </TaskList>

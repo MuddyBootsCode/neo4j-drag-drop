@@ -19,8 +19,8 @@ const Container = styled.div`
   }
 `;
 
-const Task = ({ task, index, deleteTask }) => {
-  const { content, id, columnId } = task;
+const Task = ({ task, index, deleteTask, columnId }) => {
+  const { content, id } = task;
 
   return (
     <Draggable draggableId={id} index={index}>

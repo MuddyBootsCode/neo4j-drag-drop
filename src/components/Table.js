@@ -61,27 +61,27 @@ const Table = () => {
 
   const deleteColumnTask = async (taskId, columnId) => {
     try {
-      const {
-        data: { DeleteTask },
-      } = await deleteTask({
+      await deleteTask({
         variables: {
           id: taskId,
         },
+        update: (cache) => cache.evict({ id: `Task:${taskId}` }),
       });
 
-      console.log(DeleteTask, ' Delete Task');
-
+      console.log(columnId, taskId);
       const colToUpdate = {
         ...state.columns[columnId],
         taskIds: [...state.columns[columnId].taskIds.filter((id) => id !== taskId)],
       };
 
-      console.log(colToUpdate, ' Col');
+      await colUpdate({
+        variables: {
+          ...colToUpdate,
+        },
+      });
 
       let newTasks = { ...state.tasks };
-      delete newTasks[DeleteTask.id];
-
-      console.log(newTasks, ' new Tasks');
+      delete newTasks[taskId];
 
       setState({
         ...state,
@@ -135,7 +135,6 @@ const Table = () => {
             ...newColumn,
           },
         });
-        return;
       } catch (e) {
         setState(fallbackState);
         console.warn(e);
@@ -225,7 +224,7 @@ const Table = () => {
     // Pull all tasks out into their own object
     Table[0].columns.forEach((col) => {
       col.tasks.forEach((task) => {
-        tasks[task.id] = { id: task.id, content: task.content, columnId: task.column.id };
+        tasks[task.id] = { id: task.id, content: task.content };
       });
     });
     // Pull out all columns and their associated task ids
