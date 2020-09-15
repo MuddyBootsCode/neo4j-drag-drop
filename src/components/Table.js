@@ -84,42 +84,32 @@ const Table = () => {
     }
 
     if(start !== finish){
-      const startTaskIds = [...start.taskIds];
-      const startTasks = [...start.tasks];
-      const moveTask = startTasks[0]
-      const taskId = startTaskIds[source.index];
-      startTaskIds.splice(source.index, 1);
-      startTasks.splice(source.index, 1)
+      // draggable ID is task id
+      const movedTask = start.tasks.find(task => task.id === draggableId)
       const newStart = {
         ...start,
-        taskIds: startTaskIds,
-        tasks: startTasks
+        taskIds: [...start.taskIds.filter(id => id !== draggableId)],
+        tasks: [...start.tasks.filter(task => task.id !== draggableId)]
       };
 
-
-      const finishTaskIds = [...finish.taskIds];
-      const finishTasks = [...finish.tasks]
+      const finishTaskIds = [...finish.taskIds]
       finishTaskIds.splice(destination.index, 0, draggableId);
-      finishTasks.splice(destination.index, 0, moveTask);
+
       const newFinish = {
         ...finish,
-        taskIds: finishTaskIds,
-        tasks: finishTasks
+        taskIds: [...finishTaskIds],
+        tasks: [...finish.tasks, movedTask]
       }
 
-      const changeIds = [start.id, finish.id];
-      const currentColumns = [...state.columns];
-      changeIds.forEach((id) => {
-        const removeIndex = currentColumns.map(col => col.id).indexOf(id)
-        currentColumns.splice(removeIndex, 1)
-      })
-      const updatedColumns = [...currentColumns, newStart, newFinish]
+      const newColumns = [newStart, newFinish];
+
+      const updatedColumns = [...state.columns.map(col => newColumns.find(newCol => newCol.id === col.id) || col)]
 
       const newState = {
         ...state,
         columns: updatedColumns
       }
-      console.log(newState, ' New State')
+
       setState(newState)
 
       try {
