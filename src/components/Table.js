@@ -225,7 +225,7 @@ const Table = () => {
     // Pull all tasks out into their own object
     Table[0].columns.forEach((col) => {
       col.tasks.forEach((task) => {
-        tasks[task.id] = { id: task.id, content: task.content, columnId: task.column.id };
+        tasks[task.id] = { id: task.id, content: task.content };
       });
     });
     // Pull out all columns and their associated task ids
