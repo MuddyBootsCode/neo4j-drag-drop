@@ -1,12 +1,20 @@
 import React, {useEffect, useState} from 'react';
 import {Container} from "@material-ui/core";
 import {makeStyles} from '@material-ui/core/styles';
-import initialData from "../initialData";
+import initialEmptyData from "../initialData";
 import Column from "../components/Column";
-import { DragDropContext } from "react-beautiful-dnd";
+import {DragDropContext} from "react-beautiful-dnd";
 import Paper from "@material-ui/core/Paper";
-import { useMutation, useQuery } from "@apollo/client";
-import {GET_TABLE, COL_UPDATE, ADD_TASK, REMOVE_TASK } from "../queries/taskTableQueries";
+import {useMutation, useQuery} from "@apollo/client";
+import {
+  SWAP_TASK,
+  GET_TABLE,
+  TASK_UPDATE,
+  TASK_ORDER,
+  GET_TASK,
+  columnTasksFragment
+} from "../queries/taskTableQueries";
+import {scryRenderedComponentsWithType} from "react-dom/test-utils";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -20,14 +28,49 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
+export const reorderTasks = (column, sourceIndex, destinationIndex, draggableId) => {
+  const tasks = [...column.tasks]
+  let moveTask = tasks.find(task => task.id === draggableId)
+  tasks.splice(sourceIndex, 1);
+  tasks.splice(destinationIndex, 0, moveTask);
+
+  const newTasks = tasks.map((task, index) => {
+    const cp = {...task}
+    cp.placeMarker = `col-${column.id}-t${index}`
+    return cp
+  })
+
+  return {
+    ...column,
+    tasks: [...newTasks]
+  };
+};
+
+export const changeTaskColumn = (column, taskIndex) => {
+    const startTasks = [...column.tasks];
+    startTasks.splice(taskIndex, 1)
+    return {
+      ...column,
+      tasks: startTasks
+    };
+}
+
+export const addTaskColumn = (column, taskIndex, newTask) => {
+  const finishTasks = [...column.tasks]
+  const cp = {...newTask, id: `col-${column.id}-t${taskIndex}`}
+  finishTasks.splice(taskIndex, 0, cp);
+  return {
+    ...column,
+    tasks: finishTasks
+  }
+}
 
 const Table = () => {
   const classes = useStyles();
-  const [state, setState] = useState(initialData);
+  const [state, setState] = useState(initialEmptyData);
   const {loading, error, data} = useQuery(GET_TABLE, {variables: {id: 't1'}});
-  const [colUpdate] = useMutation(COL_UPDATE)
-  const [addTask] = useMutation(ADD_TASK);
-  const [removeTask] = useMutation(REMOVE_TASK);
+  const [taskOrder] = useMutation(TASK_ORDER)
+  const [swapTask] = useMutation(SWAP_TASK)
 
   const onDragEnd = async (result) => {
     const {destination, source, draggableId} = result;
@@ -44,42 +87,58 @@ const Table = () => {
       return;
     }
 
-    const start = state.columns.find(col => col.id === source.droppableId);
-    const finish = state.columns.find(col => col.id === destination.droppableId);
+    const start = state.columns[source.droppableId];
+    const finish = state.columns[destination.droppableId]
 
     if (start === finish) {
-      const newTaskIds = [...start.taskIds]
-      newTaskIds.splice(source.index, 1);
-      newTaskIds.splice(destination.index, 0, draggableId);
 
-      const newColumn = {
-        ...start,
-        taskIds: newTaskIds
-      };
-
-
-      const updatedColumns = state.columns.filter(col => col.id !== start.id)
-
-      const newColumns = [...updatedColumns, newColumn]
+      const newColumn = reorderTasks(start, source.index, destination.index, draggableId)
 
       const newState = {
         ...state,
-        columns: newColumns
+        columns: {
+          ...state.columns,
+          [newColumn.id]: newColumn
+        }
       };
 
       setState(newState);
 
       try{
-        await colUpdate({
-          variables: {
-            id: newColumn.id,
-            taskIds: newTaskIds
-          }
-        })
+        await Promise.all(
+          newColumn.tasks.map((task) => {
+            taskOrder({
+              variables: {
+                oldId: task.id,
+                newId: task.placeMarker
+              },
+              update: async (client, { data: { updateTaskOrder } }) => {
+                try {
+                  const data = client.readQuery({query: GET_TABLE, variables: {id: 't1'}});
+                  const { Table } = data;
+                  const oldTable = Table[0];
+                  const strippedCols = [...oldTable.columns.filter(col => col.id !== start.id)]
+                  const colToUpdate = oldTable.columns.find(col => col.id === start.id)
+                  const updatedColumn = reorderTasks(colToUpdate, source.index, destination.index, draggableId)
+                  const updatedTable = {
+                    ...oldTable,
+                    columns: [...strippedCols, updatedColumn]
+                  }
+
+                  client.writeQuery({
+                    query: GET_TABLE, data: updatedTable
+                  })
+                } catch (error) {
+                  console.log(error)
+                }
+              }
+            })
+          })
+        )
         return;
       } catch(e){
         setState(fallbackState)
-        console.log(e)
+        console.warn(e)
       }
     }
 
@@ -107,64 +166,56 @@ const Table = () => {
 
       const newState = {
         ...state,
-        columns: updatedColumns
+        columns: {
+          ...state.columns,
+          [newStart.id]: newStart,
+          [newFinish.id]: newFinish
+        }
       }
 
       setState(newState)
 
       try {
-        const data = await colUpdate({
-          variables: {
-            ...newStart,
-          },
-        });
-        const {
-          data: {
-            UpdateColumn: { id },
-          },
-        } = data;
-        await removeTask({
-          variables: {
-            from: { id: taskId },
-            to: { id },
-          },
-        });
-      } catch (e) {
-        setState(fallbackState)
-        console.error(e);
-        console.log('Error at newStart update')
-      }
+          await swapTask({
+            variables: {
+              toColumnId: newFinish.id,
+              fromColumnId: newStart.id,
+              taskId: taskToMove.id,
+              updatedId: newFinish.tasks[destination.index].id
+            },
+            update: cache => cache.evict({id: `Task:${taskToMove.id}`})
+          })
 
-      try {
-        const data = await colUpdate({
-          variables: {
-            ...newFinish,
-          },
-        });
-        const {
-          data: {
-            UpdateColumn: { id },
-          },
-        } = data;
-        await addTask({
-          variables: {
-            from: { id: taskId },
-            to: { id },
-          },
-        });
-      } catch (e) {
+      } catch (error) {
         setState(fallbackState)
-        console.error(e);
-        console.log('Error at newFinish update')
+        console.log(error)
       }
     }
   };
 
+  const setTable = (data) => {
+    const { Table } = data
+    const tableData = Table[0];
+    const columns = {};
+    const columnOrder = tableData.columns.map(column => column.id);
+
+    // Pull out all columns and their associated task ids
+    tableData.columns.forEach((col) => {
+      columns[col.id] = {id: col.id, title: col.title, tasks: col.tasks}
+    })
+
+    const table = {
+      columns,
+      columnOrder
+    }
+
+    setState(table)
+  }
+
   useEffect(() => {
 
     if (data) {
-      const { Table } = data;
-      setState(Table[0])
+      setTable(data)
     }
   }, [data])
 
@@ -176,8 +227,6 @@ const Table = () => {
     console.warn(error)
   }
 
-  console.log(state)
-
   return (
     <Container className={classes.root}>
       <DragDropContext
@@ -186,11 +235,9 @@ const Table = () => {
         <Paper className={classes.paper}>
           {
             state && state.columnOrder.map((columnId) => {
-              const column = state.columns.find(column => column.id === columnId);
-              const tasks = column.taskIds.map(id => {
-                return column.tasks.find(task => task.id === id)
-              })
-              return <Column key={column.id} column={column} tasks={tasks} />
+              const column = state.columns[columnId];
+              const tasks = column.tasks
+              return <Column key={column.id} column={column} tasks={tasks}/>
             })
           }
         </Paper>

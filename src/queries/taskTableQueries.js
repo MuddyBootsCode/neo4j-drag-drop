@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client';
+import {gql} from '@apollo/client';
 
 export const GET_TABLE = gql`
     query GetTable($id: ID){
@@ -6,15 +6,32 @@ export const GET_TABLE = gql`
             id
             title
             columnOrder
-            columns{
+            columns(orderBy: id_asc){
                 id
                 title
-                taskIds
                 tasks(orderBy: id_asc){
                     id
                     content
                 }
             }
+        }
+    }
+`
+
+export const columnTasksFragment = gql`
+    fragment columnTasksFragment on Column {
+        tasks {
+            id
+            content
+        }
+    }
+`
+
+export const GET_TASK = gql`
+    query GetTask($id: ID){
+        Task(id: $id){
+            id,
+            content
         }
     }
 `
@@ -33,31 +50,40 @@ export const CREATE_TASK = gql`
 `
 
 export const COL_UPDATE = gql`
-    mutation UpdateColumn($id: ID!, $title: String, $taskIds: [ID]){
-        UpdateColumn(id: $id, title: $title, taskIds: $taskIds){
+    mutation UpdateColumn($id: ID!, $title: String){
+        UpdateColumn(id: $id, title: $title){
             id
-            taskIds
+            title
             tasks{
                 id
+                content
             }
         }
     }
 `
 
-export const ADD_TASK = gql`
-    mutation AddTaskColumn($from: _TaskInput!, $to: _ColumnInput!){
-        AddTaskColumn(from: $from, to: $to){
-            to {
-                id
-            }
+export const TASK_UPDATE = gql`
+    mutation UpdateTask($id: ID!, $content: String){
+        UpdateTask(id: $id, content: $content){
+            id
         }
     }
 `
 
-export const REMOVE_TASK = gql`
-    mutation RemoveTaskColumn($from: _TaskInput!, $to: _ColumnInput!){
-        RemoveTaskColumn(from: $from, to: $to){
-            to {
+export const TASK_ORDER = gql`
+    mutation updateTaskOrder($oldId: ID!, $newId: ID!){
+        updateTaskOrder(oldId: $oldId, newId: $newId){
+            id
+            content
+        }
+    }
+`
+
+export const SWAP_TASK = gql`
+    mutation swapTask($fromColumnId: ID!, $toColumnId: ID!, $taskId: ID!, $updatedId: ID!){
+        swapTask(fromColumnId: $fromColumnId, toColumnId: $toColumnId, taskId: $taskId, updatedId: $updatedId){
+            id
+            tasks{
                 id
             }
         }
