@@ -1,22 +1,25 @@
 import React from 'react';
-import styled from "styled-components";
-import {Draggable} from "react-beautiful-dnd";
+import styled from 'styled-components';
+import { Draggable } from 'react-beautiful-dnd';
 
 const Container = styled.div`
   border: 1px solid lightgrey;
   border-radius: 2px;
   padding: 8px;
   margin-bottom: 8px;
-  background-color: ${props => (props.isDragging ? 'lightgreen' : 'lightgrey')}
+  background-color: ${(props) => (props.isDragging ? 'lightgreen' : 'lightgrey')};
+
+  &:hover {
+    background-color: white;
+  }
 `;
 
-
-const Task = ({task, index}) => {
-  const {content, id} = task
+const Task = ({ task, index }) => {
+  const { content, id } = task;
 
   return (
     <Draggable draggableId={id} index={index}>
-      {(provided, snapshot) =>
+      {(provided, snapshot) => (
         <Container
           {...provided.draggableProps}
           {...provided.dragHandleProps}
@@ -25,10 +28,9 @@ const Task = ({task, index}) => {
         >
           {content}
         </Container>
-      }
+      )}
     </Draggable>
-
-  )
+  );
 };
 
 export default Task;

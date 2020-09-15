@@ -22,13 +22,6 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     justifyContent: 'space-between',
   },
-  taskList: {
-    padding: '8px',
-    transition: 'background-color 0.2s ease',
-    backgroundColor: (props) => (props.isDraggingOver ? 'skyblue' : 'grey'),
-    flexGrow: 1,
-    minHeight: '100px',
-  },
 }));
 
 const TaskList = styled.div`
@@ -37,6 +30,7 @@ const TaskList = styled.div`
   background-color: ${(props) => (props.isDraggingOver ? 'skyblue' : 'white')};
   flex-grow: 1;
   min-height: 100px;
+  overflow: auto;
 `;
 
 const Column = ({ column, tasks, addTask }) => {
