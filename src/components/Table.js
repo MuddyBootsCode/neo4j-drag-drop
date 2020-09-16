@@ -6,7 +6,7 @@ import Column from '../components/Column';
 import { DragDropContext } from 'react-beautiful-dnd';
 import Paper from '@material-ui/core/Paper';
 import { useMutation, useQuery } from '@apollo/client';
-import { GET_TABLE, COL_UPDATE, ADD_TASK, REMOVE_TASK, CREATE_TASK, DELETE_TASK } from '../queries/tableQueries';
+import { GET_TABLE, COL_UPDATE, ADD_TASK, REMOVE_TASK, CREATE_TASK } from '../queries/tableQueries';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -29,69 +29,29 @@ const Table = () => {
   const [removeTask] = useMutation(REMOVE_TASK);
   const [addTask] = useMutation(ADD_TASK);
   const [createTask] = useMutation(CREATE_TASK);
-  const [deleteTask] = useMutation(DELETE_TASK);
 
   const addColumnTask = async (columnId) => {
-    try {
-      const {
-        data: { addTask },
-      } = await createTask({
-        variables: {
-          columnId: columnId,
-          taskContent: `Task created for Column ${columnId}`,
-        },
-      });
+    const {
+      data: { addTask },
+    } = await createTask({
+      variables: {
+        columnId: columnId,
+        taskContent: `Task created for Column ${columnId}`,
+      },
+    });
 
-      const colToUpdate = state.columns[columnId];
-      const updatedTaskIds = [...colToUpdate.taskIds, addTask.id];
-      const newColumn = {
-        ...colToUpdate,
-        taskIds: updatedTaskIds,
-      };
+    const colToUpdate = state.columns[columnId];
+    const updatedTaskIds = [...colToUpdate.taskIds, addTask.id];
+    const newColumn = {
+      ...colToUpdate,
+      taskIds: updatedTaskIds,
+    };
 
-      setState({
-        ...state,
-        tasks: { ...state.tasks, [addTask.id]: addTask },
-        columns: { ...state.columns, [addTask.column.id]: newColumn },
-      });
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
-  const deleteColumnTask = async (taskId, columnId) => {
-    try {
-      await deleteTask({
-        variables: {
-          id: taskId,
-        },
-        update: (cache) => cache.evict({ id: `Task:${taskId}` }),
-      });
-
-      console.log(columnId, taskId);
-      const colToUpdate = {
-        ...state.columns[columnId],
-        taskIds: [...state.columns[columnId].taskIds.filter((id) => id !== taskId)],
-      };
-
-      await colUpdate({
-        variables: {
-          ...colToUpdate,
-        },
-      });
-
-      let newTasks = { ...state.tasks };
-      delete newTasks[taskId];
-
-      setState({
-        ...state,
-        tasks: newTasks,
-        columns: { ...state.columns, [columnId]: colToUpdate },
-      });
-      console.log(state);
-    } catch (e) {
-      console.log(e);
-    }
+    setState({
+      ...state,
+      tasks: { ...state.tasks, [addTask.id]: addTask },
+      columns: { ...state.columns, [addTask.column.id]: newColumn },
+    });
   };
 
   const onDragEnd = async (result) => {
@@ -135,6 +95,7 @@ const Table = () => {
             ...newColumn,
           },
         });
+        return;
       } catch (e) {
         setState(fallbackState);
         console.warn(e);
@@ -238,8 +199,6 @@ const Table = () => {
       columnOrder,
     };
 
-    console.log(table, ' Table');
-
     setState(table);
   };
 
@@ -264,15 +223,7 @@ const Table = () => {
           {state.columnOrder.map((columnId) => {
             const column = state.columns[columnId];
             const tasks = column.taskIds.map((taskId) => state.tasks[taskId]);
-            return (
-              <Column
-                key={column.id}
-                column={column}
-                tasks={tasks}
-                addTask={addColumnTask}
-                deleteTask={deleteColumnTask}
-              />
-            );
+            return <Column key={column.id} column={column} tasks={tasks} addTask={addColumnTask} />;
           })}
         </Paper>
       </DragDropContext>

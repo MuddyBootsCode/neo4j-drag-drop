@@ -12,9 +12,6 @@ const GET_TABLE = gql`
         tasks {
           id
           content
-          column {
-            id
-          }
         }
       }
     }
@@ -25,7 +22,6 @@ const COL_UPDATE = gql`
   mutation UpdateColumn($id: ID!, $title: String, $taskIds: [ID]) {
     UpdateColumn(id: $id, title: $title, taskIds: $taskIds) {
       id
-      taskIds
     }
   }
 `;
@@ -62,12 +58,4 @@ const CREATE_TASK = gql`
   }
 `;
 
-const DELETE_TASK = gql`
-  mutation DeleteTask($id: ID!) {
-    DeleteTask(id: $id) {
-      id
-    }
-  }
-`;
-
-export { GET_TABLE, ADD_TASK, REMOVE_TASK, COL_UPDATE, CREATE_TASK, DELETE_TASK };
+export { GET_TABLE, ADD_TASK, REMOVE_TASK, COL_UPDATE, CREATE_TASK };

@@ -33,7 +33,7 @@ const TaskList = styled.div`
   overflow: auto;
 `;
 
-const Column = ({ column, tasks, addTask, deleteTask }) => {
+const Column = ({ column, tasks, addTask }) => {
   const classes = useStyles();
   return (
     <Paper className={classes.paper}>
@@ -50,7 +50,7 @@ const Column = ({ column, tasks, addTask, deleteTask }) => {
         {(provided, snapshot) => (
           <TaskList ref={provided.innerRef} {...provided.droppableProps} isDraggingOver={snapshot.isDraggingOver}>
             {tasks.map((task, index) => (
-              <Task key={task.id} task={task} index={index} deleteTask={deleteTask} columnId={column.id} />
+              <Task key={task.id} task={task} index={index} />
             ))}
             {provided.placeholder}
           </TaskList>
