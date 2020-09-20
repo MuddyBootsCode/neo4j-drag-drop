@@ -7,7 +7,8 @@ const Container = styled.div`
   border-radius: 2px;
   padding: 8px;
   margin-bottom: 8px;
-  background-color: ${(props) => (props.isDragging ? 'lightgreen' : 'lightgrey')};
+  background-color: ${(props) =>
+    props.isDragging ? 'lightgreen' : 'lightgrey'};
 
   &:hover {
     background-color: white;
@@ -16,6 +17,7 @@ const Container = styled.div`
 
 const Task = ({ task, index }) => {
   const { content, id } = task;
+  console.log(content);
 
   return (
     <Draggable draggableId={id} index={index}>

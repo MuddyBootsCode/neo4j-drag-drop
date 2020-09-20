@@ -6,7 +6,14 @@ import Column from '../components/Column';
 import { DragDropContext } from 'react-beautiful-dnd';
 import Paper from '@material-ui/core/Paper';
 import { useMutation, useQuery } from '@apollo/client';
-import { GET_TABLE, COL_UPDATE, ADD_TASK, REMOVE_TASK, CREATE_TASK } from '../queries/tableQueries';
+import {
+  GET_TABLE,
+  COL_UPDATE,
+  ADD_TASK,
+  REMOVE_TASK,
+  CREATE_TASK,
+} from '../queries/tableQueries';
+import short from 'short-uuid';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -24,24 +31,31 @@ const useStyles = makeStyles((theme) => ({
 const Table = () => {
   const classes = useStyles();
   const [state, setState] = useState(initialData);
-  const { loading, error, data } = useQuery(GET_TABLE, { variables: 'Test Table' });
+  const { loading, error, data } = useQuery(GET_TABLE, {
+    variables: 'Test Table',
+  });
   const [colUpdate] = useMutation(COL_UPDATE);
   const [removeTask] = useMutation(REMOVE_TASK);
   const [addTask] = useMutation(ADD_TASK);
   const [createTask] = useMutation(CREATE_TASK);
 
   const addColumnTask = async (columnId) => {
-    const {
-      data: { addTask },
-    } = await createTask({
-      variables: {
-        columnId: columnId,
-        taskContent: `Task created for Column ${columnId}`,
-      },
-    });
+    const taskId = short.generate();
+
+    const fallBackState = { ...state };
+
+    const defaultTask = {
+      id: taskId,
+      content: `Task created for Column ${columnId}`,
+      columnId,
+    };
 
     const colToUpdate = state.columns[columnId];
-    const updatedTaskIds = [...colToUpdate.taskIds, addTask.id];
+
+    const updatedTaskIds = [...colToUpdate.taskIds, taskId];
+
+    const updatedTasks = { ...state.tasks, [taskId]: defaultTask };
+
     const newColumn = {
       ...colToUpdate,
       taskIds: updatedTaskIds,
@@ -49,9 +63,22 @@ const Table = () => {
 
     setState({
       ...state,
-      tasks: { ...state.tasks, [addTask.id]: addTask },
-      columns: { ...state.columns, [addTask.column.id]: newColumn },
+      tasks: updatedTasks,
+      columns: { ...state.columns, [columnId]: newColumn },
     });
+
+    try {
+      await createTask({
+        variables: {
+          taskContent: defaultTask.content,
+          taskId: taskId,
+          columnId,
+        },
+      });
+    } catch (e) {
+      setState(fallBackState);
+      console.log(e, ' Error adding task');
+    }
   };
 
   const onDragEnd = async (result) => {
@@ -62,7 +89,10 @@ const Table = () => {
       return;
     }
 
-    if (destination.droppableId === source && destination.index === source.index) {
+    if (
+      destination.droppableId === source &&
+      destination.index === source.index
+    ) {
       return;
     }
 
@@ -223,7 +253,14 @@ const Table = () => {
           {state.columnOrder.map((columnId) => {
             const column = state.columns[columnId];
             const tasks = column.taskIds.map((taskId) => state.tasks[taskId]);
-            return <Column key={column.id} column={column} tasks={tasks} addTask={addColumnTask} />;
+            return (
+              <Column
+                key={column.id}
+                column={column}
+                tasks={tasks}
+                addTask={addColumnTask}
+              />
+            );
           })}
         </Paper>
       </DragDropContext>

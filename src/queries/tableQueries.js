@@ -47,13 +47,10 @@ const REMOVE_TASK = gql`
 `;
 
 const CREATE_TASK = gql`
-  mutation addTask($taskContent: String!, $columnId: ID!) {
-    addTask(taskContent: $taskContent, columnId: $columnId) {
+  mutation addTask($taskContent: String!, $columnId: ID!, $taskId: ID!) {
+    addTask(taskContent: $taskContent, columnId: $columnId, taskId: $taskId) {
       id
       content
-      column {
-        id
-      }
     }
   }
 `;
