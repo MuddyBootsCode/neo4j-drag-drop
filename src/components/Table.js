@@ -47,14 +47,10 @@ const Table = () => {
     const updatedTasks = { ...state.tasks };
     delete updatedTasks[taskId];
 
-    console.log(state.columns[columnId], ' Pre delete Column');
-
     const updatedColumn = {
       ...state.columns[columnId],
       taskIds: [...state.columns[columnId].taskIds.filter((t) => t !== taskId)],
     };
-
-    console.log(updatedColumn, ' Updated Column');
 
     const newState = {
       ...state,
