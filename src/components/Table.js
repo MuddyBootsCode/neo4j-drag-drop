@@ -12,6 +12,7 @@ import {
   ADD_TASK,
   REMOVE_TASK,
   CREATE_TASK,
+  DELETE_TASK,
 } from '../queries/tableQueries';
 import short from 'short-uuid';
 
@@ -38,6 +39,53 @@ const Table = () => {
   const [removeTask] = useMutation(REMOVE_TASK);
   const [addTask] = useMutation(ADD_TASK);
   const [createTask] = useMutation(CREATE_TASK);
+  const [deleteTask] = useMutation(DELETE_TASK);
+
+  const deleteColumnTask = async (taskId, columnId) => {
+    const fallBackState = { ...state };
+
+    const updatedTasks = { ...state.tasks };
+    delete updatedTasks[taskId];
+
+    console.log(state.columns[columnId], ' Pre delete Column');
+
+    const updatedColumn = {
+      ...state.columns[columnId],
+      taskIds: [...state.columns[columnId].taskIds.filter((t) => t !== taskId)],
+    };
+
+    console.log(updatedColumn, ' Updated Column');
+
+    const newState = {
+      ...state,
+      tasks: updatedTasks,
+      columns: { ...state.columns, [columnId]: updatedColumn },
+    };
+
+    setState(newState);
+
+    try {
+      await deleteTask({
+        variables: {
+          id: taskId,
+        },
+      });
+    } catch (e) {
+      setState(fallBackState);
+      console.log(e, ' Error at Task Deletion');
+    }
+
+    try {
+      await colUpdate({
+        variables: {
+          ...updatedColumn,
+        },
+      });
+    } catch (e) {
+      setState(fallBackState);
+      console.log(e, ' Error on column update after task delete');
+    }
+  };
 
   const addColumnTask = async (columnId) => {
     const taskId = short.generate();
@@ -259,6 +307,7 @@ const Table = () => {
                 column={column}
                 tasks={tasks}
                 addTask={addColumnTask}
+                deleteTask={deleteColumnTask}
               />
             );
           })}

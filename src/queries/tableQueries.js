@@ -55,4 +55,19 @@ const CREATE_TASK = gql`
   }
 `;
 
-export { GET_TABLE, ADD_TASK, REMOVE_TASK, COL_UPDATE, CREATE_TASK };
+const DELETE_TASK = gql`
+  mutation DeleteTask($id: ID!) {
+    DeleteTask(id: $id) {
+      id
+    }
+  }
+`;
+
+export {
+  GET_TABLE,
+  ADD_TASK,
+  REMOVE_TASK,
+  COL_UPDATE,
+  CREATE_TASK,
+  DELETE_TASK,
+};

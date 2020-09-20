@@ -1,8 +1,13 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Draggable } from 'react-beautiful-dnd';
+import Tooltip from '@material-ui/core/Tooltip';
+import Fab from '@material-ui/core/Fab';
+import { Delete } from '@material-ui/icons';
 
 const Container = styled.div`
+  display: flex;
+  justify-content: space-between;
   border: 1px solid lightgrey;
   border-radius: 2px;
   padding: 8px;
@@ -15,9 +20,8 @@ const Container = styled.div`
   }
 `;
 
-const Task = ({ task, index }) => {
+const Task = ({ task, index, deleteTask, columnId }) => {
   const { content, id } = task;
-  console.log(content);
 
   return (
     <Draggable draggableId={id} index={index}>
@@ -29,6 +33,15 @@ const Task = ({ task, index }) => {
           isDragging={snapshot.isDragging}
         >
           {content}
+          <Fab
+            color='secondary'
+            size='small'
+            onClick={() => deleteTask(id, columnId)}
+          >
+            <Tooltip title='Delete Task'>
+              <Delete />
+            </Tooltip>
+          </Fab>
         </Container>
       )}
     </Draggable>
