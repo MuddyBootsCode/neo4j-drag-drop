@@ -22,6 +22,7 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     justifyContent: 'space-between',
   },
+  button: {},
 }));
 
 const TaskList = styled.div`
@@ -39,7 +40,12 @@ const Column = ({ column, tasks, addTask, deleteTask }) => {
     <Paper className={classes.paper}>
       <div className={classes.title}>
         <h3>{column.title}</h3>
-        <Fab color='primary' size='small' onClick={() => addTask(column.id)}>
+        <Fab
+          className={classes.button}
+          color='primary'
+          size='small'
+          onClick={() => addTask(column.id)}
+        >
           <Tooltip title='Add Task'>
             <AddIcon />
           </Tooltip>

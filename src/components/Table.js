@@ -5,7 +5,7 @@ import initialData from '../initialData';
 import Column from '../components/Column';
 import { DragDropContext } from 'react-beautiful-dnd';
 import Paper from '@material-ui/core/Paper';
-import { useMutation, useQuery } from '@apollo/client';
+import { useMutation, useQuery, useSubscription } from '@apollo/client';
 import {
   GET_TABLE,
   COL_UPDATE,
@@ -13,8 +13,10 @@ import {
   REMOVE_TASK,
   CREATE_TASK,
   DELETE_TASK,
+  TASK_SUBSCRIPTION,
 } from '../queries/tableQueries';
 import short from 'short-uuid';
+import { addTaskFunction } from '../utils/tableFunctions';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -40,6 +42,7 @@ const Table = () => {
   const [addTask] = useMutation(ADD_TASK);
   const [createTask] = useMutation(CREATE_TASK);
   const [deleteTask] = useMutation(DELETE_TASK);
+  const { taskSubData } = useSubscription(TASK_SUBSCRIPTION);
 
   const deleteColumnTask = async (taskId, columnId) => {
     const fallBackState = { ...state };
@@ -88,34 +91,21 @@ const Table = () => {
 
     const fallBackState = { ...state };
 
-    const defaultTask = {
-      id: taskId,
-      content: `Task created for Column ${columnId}`,
-      columnId,
-    };
-
     const colToUpdate = state.columns[columnId];
 
-    const updatedTaskIds = [...colToUpdate.taskIds, taskId];
-
-    const updatedTasks = { ...state.tasks, [taskId]: defaultTask };
-
-    const newColumn = {
-      ...colToUpdate,
-      taskIds: updatedTaskIds,
-    };
+    const newState = addTaskFunction(colToUpdate, { ...state.tasks }, taskId);
 
     setState({
       ...state,
-      tasks: updatedTasks,
-      columns: { ...state.columns, [columnId]: newColumn },
+      tasks: newState.tasks,
+      columns: { ...state.columns, [columnId]: newState.column },
     });
 
     try {
       await createTask({
         variables: {
-          taskContent: defaultTask.content,
-          taskId: taskId,
+          taskContent: newState.tasks[taskId].content,
+          taskId,
           columnId,
         },
       });

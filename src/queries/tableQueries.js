@@ -63,6 +63,16 @@ const DELETE_TASK = gql`
   }
 `;
 
+const TASK_SUBSCRIPTION = gql`
+  {
+    subscription
+    taskAdded {
+      id
+      content
+    }
+  }
+`;
+
 export {
   GET_TABLE,
   ADD_TASK,
@@ -70,4 +80,5 @@ export {
   COL_UPDATE,
   CREATE_TASK,
   DELETE_TASK,
+  TASK_SUBSCRIPTION,
 };
