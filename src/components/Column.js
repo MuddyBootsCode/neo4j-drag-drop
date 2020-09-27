@@ -52,7 +52,6 @@ const Column = ({ column, tasks, addTask, deleteTask }) => {
           </Tooltip>
         </Fab>
       </div>
-      <Divider />
       <Droppable droppableId={column.id}>
         {(provided, snapshot) => (
           <TaskList
