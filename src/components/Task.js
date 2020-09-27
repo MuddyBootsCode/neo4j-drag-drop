@@ -2,13 +2,14 @@ import React from 'react';
 import styled from 'styled-components';
 import { Draggable } from 'react-beautiful-dnd';
 import Tooltip from '@material-ui/core/Tooltip';
-import Fab from '@material-ui/core/Fab';
-import { Delete } from '@material-ui/icons';
+import DeleteOutlinedIcon from '@material-ui/icons/DeleteOutlined';
+import EditOutlinedIcon from '@material-ui/icons/EditOutlined';
 
 const Container = styled.div`
   display: flex;
   justify-content: space-between;
-  border: 1px solid lightgrey;
+  border: ${(props) =>
+    props.isDragging ? '2px solid black' : '1px solid lightgrey'};
   border-radius: 2px;
   padding: 8px;
   margin-bottom: 8px;
@@ -17,7 +18,28 @@ const Container = styled.div`
 
   &:hover {
     background-color: white;
+    border: 2px solid black;
   }
+`;
+
+const DeleteButton = styled.button`
+  background: transparent;
+  border: none;
+  margin: 0;
+  padding: 0;
+  
+  &:hover {
+  color: red;
+`;
+
+const EditButton = styled.button`
+  background: transparent;
+  border: none;
+  margin: 0;
+  padding: 0;
+  
+  &:hover {
+  color: blue;
 `;
 
 const Task = ({ task, index, deleteTask, columnId }) => {
@@ -33,15 +55,18 @@ const Task = ({ task, index, deleteTask, columnId }) => {
           isDragging={snapshot.isDragging}
         >
           {content}
-          <Fab
-            color='secondary'
-            size='small'
-            onClick={() => deleteTask(id, columnId)}
-          >
-            <Tooltip title='Delete Task'>
-              <Delete />
-            </Tooltip>
-          </Fab>
+          <div>
+            <EditButton>
+              <Tooltip title='Edit Task'>
+                <EditOutlinedIcon style={{ fontSize: 20 }} />
+              </Tooltip>
+            </EditButton>
+            <DeleteButton onClick={() => deleteTask(id, columnId)}>
+              <Tooltip title='Delete Task'>
+                <DeleteOutlinedIcon fontSize='small' />
+              </Tooltip>
+            </DeleteButton>
+          </div>
         </Container>
       )}
     </Draggable>

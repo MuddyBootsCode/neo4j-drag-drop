@@ -21,6 +21,7 @@ const useStyles = makeStyles((theme) => ({
     padding: '8px',
     display: 'flex',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   button: {},
 }));
