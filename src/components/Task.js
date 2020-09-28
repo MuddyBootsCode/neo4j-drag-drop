@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Draggable } from 'react-beautiful-dnd';
 import Tooltip from '@material-ui/core/Tooltip';
 import DeleteOutlinedIcon from '@material-ui/icons/DeleteOutlined';
 import EditOutlinedIcon from '@material-ui/icons/EditOutlined';
+import TaskDialog from './TaskDialog';
 
 const Container = styled.div`
   display: flex;
@@ -44,32 +45,48 @@ const EditButton = styled.button`
 
 const Task = ({ task, index, deleteTask, columnId }) => {
   const { content, id } = task;
+  const [open, setOpen] = useState(false);
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
 
   return (
-    <Draggable draggableId={id} index={index}>
-      {(provided, snapshot) => (
-        <Container
-          {...provided.draggableProps}
-          {...provided.dragHandleProps}
-          ref={provided.innerRef}
-          isDragging={snapshot.isDragging}
-        >
-          {content}
-          <div>
-            <EditButton>
-              <Tooltip title='Edit Task'>
-                <EditOutlinedIcon style={{ fontSize: 20 }} />
-              </Tooltip>
-            </EditButton>
-            <DeleteButton onClick={() => deleteTask(id, columnId)}>
-              <Tooltip title='Delete Task'>
-                <DeleteOutlinedIcon fontSize='small' />
-              </Tooltip>
-            </DeleteButton>
-          </div>
-        </Container>
+    <>
+      {open ? (
+        <TaskDialog open={open} handleClose={handleClose} taskId={id} />
+      ) : (
+        ''
       )}
-    </Draggable>
+      <Draggable draggableId={id} index={index}>
+        {(provided, snapshot) => (
+          <Container
+            {...provided.draggableProps}
+            {...provided.dragHandleProps}
+            ref={provided.innerRef}
+            isDragging={snapshot.isDragging}
+          >
+            {content}
+            <div>
+              <Tooltip title='Edit Task'>
+                <EditButton onClick={() => handleClickOpen()}>
+                  <EditOutlinedIcon style={{ fontSize: 20 }} />
+                </EditButton>
+              </Tooltip>
+              <Tooltip title='Delete Task'>
+                <DeleteButton onClick={() => deleteTask(id, columnId)}>
+                  <DeleteOutlinedIcon fontSize='small' />
+                </DeleteButton>
+              </Tooltip>
+            </div>
+          </Container>
+        )}
+      </Draggable>
+    </>
   );
 };
 

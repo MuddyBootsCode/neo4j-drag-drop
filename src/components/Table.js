@@ -17,6 +17,7 @@ import {
 } from '../queries/tableQueries';
 import short from 'short-uuid';
 import { addTaskFunction } from '../utils/tableFunctions';
+import TaskDialog from './TaskDialog';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -42,7 +43,21 @@ const Table = () => {
   const [addTask] = useMutation(ADD_TASK);
   const [createTask] = useMutation(CREATE_TASK);
   const [deleteTask] = useMutation(DELETE_TASK);
-  const { taskSubData } = useSubscription(TASK_SUBSCRIPTION);
+  const { taskLoading, taskError, taskData } = useSubscription(
+    TASK_SUBSCRIPTION
+  );
+
+  if (taskLoading) {
+    console.log('Task Loading');
+  }
+
+  if (taskError) {
+    console.log(taskError);
+  }
+
+  if (taskData) {
+    console.log(taskData);
+  }
 
   const deleteColumnTask = async (taskId, columnId) => {
     const fallBackState = { ...state };
@@ -282,23 +297,25 @@ const Table = () => {
 
   return (
     <Container className={classes.root}>
-      <DragDropContext onDragEnd={onDragEnd}>
-        <Paper className={classes.paper}>
-          {state.columnOrder.map((columnId) => {
-            const column = state.columns[columnId];
-            const tasks = column.taskIds.map((taskId) => state.tasks[taskId]);
-            return (
-              <Column
-                key={column.id}
-                column={column}
-                tasks={tasks}
-                addTask={addColumnTask}
-                deleteTask={deleteColumnTask}
-              />
-            );
-          })}
-        </Paper>
-      </DragDropContext>
+      <>
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Paper className={classes.paper}>
+            {state.columnOrder.map((columnId) => {
+              const column = state.columns[columnId];
+              const tasks = column.taskIds.map((taskId) => state.tasks[taskId]);
+              return (
+                <Column
+                  key={column.id}
+                  column={column}
+                  tasks={tasks}
+                  addTask={addColumnTask}
+                  deleteTask={deleteColumnTask}
+                />
+              );
+            })}
+          </Paper>
+        </DragDropContext>
+      </>
     </Container>
   );
 };

@@ -14,11 +14,11 @@ import { WebSocketLink } from '@apollo/client/link/ws';
 import { getMainDefinition } from '@apollo/client/utilities';
 
 const httpLink = new HttpLink({
-  uri: process.env.REACT_APP_GRAPHQL_URI || 'http://localhost:4000',
+  uri: process.env.REACT_APP_GRAPHQL_URI || 'http://localhost:4000/graphql',
 });
 
 const wsLink = new WebSocketLink({
-  uri: process.env.REACT_APP_GRAPHQL_URI || 'ws://localhost:4000',
+  uri: process.env.REACT_APP_GRAPHQL_URI || 'ws://localhost:4000/graphql',
   options: {
     reconnect: true,
   },

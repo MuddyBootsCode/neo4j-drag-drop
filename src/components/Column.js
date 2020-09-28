@@ -4,7 +4,6 @@ import { makeStyles } from '@material-ui/core/styles';
 import { Droppable } from 'react-beautiful-dnd';
 import styled from 'styled-components';
 import Task from './Task';
-import { Divider } from '@material-ui/core';
 import Fab from '@material-ui/core/Fab';
 import Tooltip from '@material-ui/core/Tooltip';
 import AddIcon from '@material-ui/icons/Add';
