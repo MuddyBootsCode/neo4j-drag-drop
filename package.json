@@ -10,6 +10,10 @@
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
+    "date-fns": "^2.16.1",
+    "formik": "^2.1.5",
+    "formik-material-ui": "^3.0.0",
+    "formik-material-ui-pickers": "^0.0.11",
     "graphql": "^15.3.0",
     "react": "^16.13.1",
     "react-beautiful-dnd": "^13.0.0",
@@ -17,7 +21,8 @@
     "react-scripts": "3.4.3",
     "short-uuid": "^4.1.0",
     "styled-components": "^5.1.1",
-    "subscriptions-transport-ws": "^0.9.18"
+    "subscriptions-transport-ws": "^0.9.18",
+    "yup": "^0.29.3"
   },
   "scripts": {
     "start": "react-scripts start",

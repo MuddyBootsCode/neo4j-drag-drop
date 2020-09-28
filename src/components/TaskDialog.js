@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -7,14 +7,21 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import { makeStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
+import Slide from '@material-ui/core/Slide';
+
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return (
+    <Slide
+      direction='down'
+      timeout={{ appear: 500, enter: 1000, exit: 500 }}
+      ref={ref}
+      {...props}
+    />
+  );
+});
 
 const useStyles = makeStyles((theme) => ({
-  paper: {
-    width: 'auto',
-    border: '2px solid #000',
-    boxShadow: theme.shadows[5],
-    padding: theme.spacing(2, 4, 3),
-  },
+  dialog: {},
 }));
 
 const TaskDialog = ({ open, handleClose, taskId }) => {
@@ -26,10 +33,12 @@ const TaskDialog = ({ open, handleClose, taskId }) => {
     <div id='task-dialog'>
       <Dialog
         open={open}
+        TransitionComponent={Transition}
+        keepMounted
         onClose={() => handleClose()}
         aria-labelledby='simple-modal-title'
         aria-describedby='simple-modal-description'
-        className={classes.paper}
+        className={classes.dialog}
       >
         <DialogTitle id='dialog-title'>Task {taskId}</DialogTitle>
         <DialogContent>
@@ -44,7 +53,7 @@ const TaskDialog = ({ open, handleClose, taskId }) => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => handleClose()} color='primary'>
+          <Button onClick={() => handleClose()} color='secondary'>
             Cancel
           </Button>
           <Button onClick={() => handleClose()} color='primary'>
