@@ -14,8 +14,7 @@ const Container = styled.div`
   border-radius: 2px;
   padding: 8px;
   margin-bottom: 8px;
-  background-color: ${(props) =>
-    props.isDragging ? 'lightgreen' : 'lightgrey'};
+  background-color: ${(props) => (props.isDragging ? 'white' : 'lightgrey')};
 
   &:hover {
     background-color: white;
@@ -74,12 +73,12 @@ const Task = ({ task, index, deleteTask, columnId }) => {
             <div>
               <Tooltip title='Edit Task'>
                 <EditButton onClick={() => handleClickOpen()}>
-                  <EditOutlinedIcon style={{ fontSize: 20 }} />
+                  <EditOutlinedIcon fontSize='medium' />
                 </EditButton>
               </Tooltip>
               <Tooltip title='Delete Task'>
                 <DeleteButton onClick={() => deleteTask(id, columnId)}>
-                  <DeleteOutlinedIcon fontSize='small' />
+                  <DeleteOutlinedIcon fontSize='medium' />
                 </DeleteButton>
               </Tooltip>
             </div>
