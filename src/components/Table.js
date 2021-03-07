@@ -5,7 +5,7 @@ import initialData from '../initialData';
 import Column from '../components/Column';
 import { DragDropContext } from 'react-beautiful-dnd';
 import Paper from '@material-ui/core/Paper';
-import { useMutation, useQuery, useSubscription } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import {
   GET_TABLE,
   COL_UPDATE,
@@ -13,11 +13,9 @@ import {
   REMOVE_TASK,
   CREATE_TASK,
   DELETE_TASK,
-  TASK_SUBSCRIPTION,
 } from '../queries/tableQueries';
 import short from 'short-uuid';
 import { addTaskFunction } from '../utils/tableFunctions';
-import TaskDialog from './TaskDialog';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -43,11 +41,6 @@ const Table = () => {
   const [addTask] = useMutation(ADD_TASK);
   const [createTask] = useMutation(CREATE_TASK);
   const [deleteTask] = useMutation(DELETE_TASK);
-  // const {
-  //   loading: taskLoading,
-  //   error: taskError,
-  //   data: taskData,
-  // } = useSubscription(TASK_SUBSCRIPTION);
 
   if (loading) {
     console.log('Task Loading');
