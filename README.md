@@ -1,18 +1,11 @@
----
-title: Drag and Drop with the GRANDstack
-published: true
-description: Adding drag and drop functionality to a GRANDstack application
-tags: [React, Neo4j, Apollo, GraphQL]
-cover_image: https://dev-to-uploads.s3.amazonaws.com/i/r3fv16xadm8glgvwdvsg.png
----
-*This tutorial assumes you have basic familiarity with React, Apollo, and Neo4j*
+# Neo4j Drag and Drop
 
 While planning my most recent side project, I decided to play with a feature that I've always wanted to mess with on the front end, drag and drop functionality. It didn't take long to find out that there are a number of highly regarded drag and drop libraries for React but, after reading docs and reviews I decided that [React-beautiful-dnd](https://github.com/atlassian/react-beautiful-dnd) was going to fit my use case. In addition it came boxed up with a very nice free tutorial course which you can find [here](https://egghead.io/courses/beautiful-and-accessible-drag-and-drop-with-react-beautiful-dnd). None of the code pertaining to the drag and drop functionality is mine, I adapted it from the tutorial, my only contribution being that I created it with hooks vs. class components. *You'll need to complete their tutorial before you start this one*
 
 **Lets get started!**
 
 After you've completed the drag and drop tutorial from Egghead, to start here all you need to do is pick up the starter [GRANDstack](https://grandstack.io) project, clone it and get it spun up in your preferred IDE. After you've got the project up and running we'll need to add these types to your schema.graphl file:
-``` JSON
+```javascript
 type Task {
  id: ID!
  content: String!
