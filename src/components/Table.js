@@ -43,21 +43,21 @@ const Table = () => {
   const [addTask] = useMutation(ADD_TASK);
   const [createTask] = useMutation(CREATE_TASK);
   const [deleteTask] = useMutation(DELETE_TASK);
-  const { taskLoading, taskError, taskData } = useSubscription(
-    TASK_SUBSCRIPTION
-  );
+  // const {
+  //   loading: taskLoading,
+  //   error: taskError,
+  //   data: taskData,
+  // } = useSubscription(TASK_SUBSCRIPTION);
 
-  if (taskLoading) {
+  if (loading) {
     console.log('Task Loading');
   }
 
-  if (taskError) {
-    console.log(taskError);
+  if (error) {
+    console.log(error);
   }
 
-  if (taskData) {
-    console.log(taskData);
-  }
+  console.log(data);
 
   const deleteColumnTask = async (taskId, columnId) => {
     const fallBackState = { ...state };
