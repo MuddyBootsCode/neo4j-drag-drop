@@ -129,7 +129,7 @@ This allows us to add directly query our Neo4j instance and get that data we nee
 
 *Data Object From Egghead tutorial*
 At the current state of the application you should be using this initialData object to set your state. However now that we're going to be pulling data in via our API well need to change it from this:
-``` JSON
+```javascript
 const initialData = {
   tasks: {
     'task-1': {id: 'task-1', content: 'Take out the garbage'},
@@ -158,7 +158,7 @@ const initialData = {
 };
 ```
 to this:
-``` JSON
+```javascript
 const initialData = {
   tasks: {
 
